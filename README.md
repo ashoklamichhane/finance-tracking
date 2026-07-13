@@ -1,8 +1,9 @@
 # Finance Tracking
 
-A personal, installable PWA for tracking savings goals, loans, and portfolio
-allocation — local-first (data stays in the browser's IndexedDB, never sent to
-a server) with a manual JSON backup/restore flow.
+App for tracking finances for personal use — a personal, installable PWA for
+tracking savings goals, loans, and portfolio allocation — local-first (data
+stays in the browser's IndexedDB, never sent to a server) with a manual JSON
+backup/restore flow.
 
 **Live app:** https://ashoklamichhane.github.io/finance-tracking/
 
