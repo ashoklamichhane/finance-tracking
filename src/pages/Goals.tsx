@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { useLiveQuery } from 'dexie-react-hooks'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
-import { db, type Goal } from '@/db/db'
+import { type Goal } from '@/db/db'
+import { useFirestoreCollection, putDoc, patchDoc, removeDoc } from '@/db/firestore'
+import { useAuthUser } from '@/lib/AuthContext'
 import { EntityForm } from '@/components/EntityForm'
 import { MoneyInput } from '@/components/MoneyInput'
 import { TextInput } from '@/components/TextInput'
@@ -31,10 +32,15 @@ const EMPTY_DRAFT: DraftGoal = {
 }
 
 export function Goals() {
-  const goals = useLiveQuery(() => db.goals.orderBy('priority').toArray(), [], [])
+  const user = useAuthUser()
+  const uid = user?.uid
+  const goalsRaw = useFirestoreCollection<Goal>(uid, 'goals')
   const [open, setOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [draft, setDraft] = useState<DraftGoal>(EMPTY_DRAFT)
+
+  if (!uid || !goalsRaw) return null
+  const goals = [...goalsRaw].sort((a, b) => a.priority - b.priority)
 
   function openNew() {
     setEditingId(null)
@@ -59,7 +65,7 @@ export function Goals() {
   async function handleSubmit() {
     const now = Date.now()
     if (editingId) {
-      await db.goals.update(editingId, {
+      await patchDoc(uid!, 'goals', editingId, {
         name: draft.name,
         category: draft.category,
         targetAmountPaise: rupeesToPaise(draft.targetAmountRupees),
@@ -70,15 +76,14 @@ export function Goals() {
         updatedAt: now,
       })
     } else {
-      const existingCount = await db.goals.count()
-      await db.goals.add({
+      await putDoc<Goal>(uid!, 'goals', {
         id: newId(),
         name: draft.name,
         category: draft.category,
         targetAmountPaise: rupeesToPaise(draft.targetAmountRupees),
         currentAmountPaise: rupeesToPaise(draft.currentAmountRupees),
         targetDate: draft.targetDate || null,
-        priority: existingCount,
+        priority: goals.length,
         monthlyAllocationPaise: rupeesToPaise(draft.monthlyAllocationRupees),
         notes: draft.notes,
         updatedAt: now,
@@ -88,10 +93,8 @@ export function Goals() {
   }
 
   async function handleDelete(id: string) {
-    await db.goals.delete(id)
+    await removeDoc(uid!, 'goals', id)
   }
-
-  if (!goals) return null
 
   return (
     <div className="space-y-4">

@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { useLiveQuery } from 'dexie-react-hooks'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
-import { db, type Loan } from '@/db/db'
+import { type Loan } from '@/db/db'
+import { useFirestoreCollection, putDoc, patchDoc, removeDoc } from '@/db/firestore'
+import { useAuthUser } from '@/lib/AuthContext'
 import { EntityForm } from '@/components/EntityForm'
 import { MoneyInput } from '@/components/MoneyInput'
 import { TextInput } from '@/components/TextInput'
@@ -29,7 +30,9 @@ const EMPTY_DRAFT: DraftLoan = {
 }
 
 export function Loans() {
-  const loans = useLiveQuery(() => db.loans.toArray(), [], [])
+  const user = useAuthUser()
+  const uid = user?.uid
+  const loans = useFirestoreCollection<Loan>(uid, 'loans')
   const [open, setOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [draft, setDraft] = useState<DraftLoan>(EMPTY_DRAFT)
@@ -56,7 +59,7 @@ export function Loans() {
   async function handleSubmit() {
     const now = Date.now()
     if (editingId) {
-      await db.loans.update(editingId, {
+      await patchDoc(uid!, 'loans', editingId, {
         name: draft.name,
         lender: draft.lender,
         outstandingPaise: rupeesToPaise(draft.outstandingRupees),
@@ -66,7 +69,7 @@ export function Loans() {
         updatedAt: now,
       })
     } else {
-      await db.loans.add({
+      await putDoc<Loan>(uid!, 'loans', {
         id: newId(),
         name: draft.name,
         lender: draft.lender,
@@ -81,10 +84,10 @@ export function Loans() {
   }
 
   async function handleDelete(id: string) {
-    await db.loans.delete(id)
+    await removeDoc(uid!, 'loans', id)
   }
 
-  if (!loans) return null
+  if (!uid || !loans) return null
 
   return (
     <div className="space-y-4">

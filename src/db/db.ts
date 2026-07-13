@@ -1,5 +1,3 @@
-import Dexie, { type EntityTable } from 'dexie'
-
 export type AssetClass =
   | 'emergency'
   | 'equity_in'
@@ -78,31 +76,3 @@ export interface Contribution {
   assetClass: AssetClass | null
   note: string
 }
-
-export interface Meta {
-  id: string
-  lastSyncedAt: number | null
-  snapshotVersion: number
-  driveFileId: string | null
-  encSalt: string | null
-}
-
-const db = new Dexie('savings-app') as Dexie & {
-  holdings: EntityTable<Holding, 'id'>
-  goals: EntityTable<Goal, 'id'>
-  loans: EntityTable<Loan, 'id'>
-  savingsPlan: EntityTable<SavingsPlan, 'id'>
-  contributions: EntityTable<Contribution, 'id'>
-  meta: EntityTable<Meta, 'id'>
-}
-
-db.version(1).stores({
-  holdings: 'id, assetClass, platform, updatedAt',
-  goals: 'id, category, targetDate, priority, updatedAt',
-  loans: 'id, updatedAt',
-  savingsPlan: 'id, updatedAt',
-  contributions: 'id, date, goalId, assetClass',
-  meta: 'id',
-})
-
-export { db }

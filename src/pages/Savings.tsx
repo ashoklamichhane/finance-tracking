@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { useLiveQuery } from 'dexie-react-hooks'
 import { Plus, Trash2 } from 'lucide-react'
-import { db, ASSET_CLASSES, type AssetClass, type SavingsSplit } from '@/db/db'
+import { ASSET_CLASSES, type AssetClass, type SavingsSplit, type SavingsPlan, type Contribution } from '@/db/db'
+import { useFirestoreCollection, useFirestoreDoc, putDoc, removeDoc } from '@/db/firestore'
+import { useAuthUser } from '@/lib/AuthContext'
 import { EntityForm } from '@/components/EntityForm'
 import { MoneyInput } from '@/components/MoneyInput'
 import { TextInput } from '@/components/TextInput'
@@ -18,8 +19,10 @@ function assetClassLabel(ac: AssetClass) {
 }
 
 export function Savings() {
-  const plan = useLiveQuery(() => db.savingsPlan.get(PLAN_ID))
-  const contributions = useLiveQuery(() => db.contributions.orderBy('date').reverse().toArray(), [], [])
+  const user = useAuthUser()
+  const uid = user?.uid
+  const plan = useFirestoreDoc<SavingsPlan>(uid, 'savingsPlan', PLAN_ID)
+  const contributionsRaw = useFirestoreCollection<Contribution>(uid, 'contributions')
 
   const [planOpen, setPlanOpen] = useState(false)
   const [monthlyTotalRupees, setMonthlyTotalRupees] = useState(0)
@@ -56,7 +59,7 @@ export function Savings() {
       targetPct: s.targetPct,
       targetAmountPaise: Math.round((monthlyTotalPaise * s.targetPct) / 100),
     }))
-    await db.savingsPlan.put({
+    await putDoc<SavingsPlan>(uid!, 'savingsPlan', {
       id: PLAN_ID,
       monthlyTotalPaise,
       splits: finalSplits,
@@ -74,7 +77,7 @@ export function Savings() {
   }
 
   async function handleContribSubmit() {
-    await db.contributions.add({
+    await putDoc<Contribution>(uid!, 'contributions', {
       id: newId(),
       date: contribDate,
       amountPaise: rupeesToPaise(contribAmountRupees),
@@ -86,10 +89,11 @@ export function Savings() {
   }
 
   async function handleContribDelete(id: string) {
-    await db.contributions.delete(id)
+    await removeDoc(uid!, 'contributions', id)
   }
 
-  if (!contributions) return null
+  if (!uid || !contributionsRaw) return null
+  const contributions = [...contributionsRaw].sort((a, b) => b.date.localeCompare(a.date))
 
   const monthKey = currentMonthKey()
   const monthContributions = contributionsForMonth(contributions, monthKey)

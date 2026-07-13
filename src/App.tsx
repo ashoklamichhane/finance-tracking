@@ -1,4 +1,6 @@
-import { HashRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { AuthProvider } from '@/lib/AuthContext'
+import { SignInGate } from '@/components/SignInGate'
 import { Layout } from '@/components/Layout'
 import { Overview } from '@/pages/Overview'
 import { Goals } from '@/pages/Goals'
@@ -9,18 +11,22 @@ import { Settings } from '@/pages/Settings'
 
 function App() {
   return (
-    <HashRouter>
-      <Routes>
-        <Route element={<Layout />}>
-          <Route index element={<Overview />} />
-          <Route path="goals" element={<Goals />} />
-          <Route path="portfolio" element={<Portfolio />} />
-          <Route path="loans" element={<Loans />} />
-          <Route path="savings" element={<Savings />} />
-          <Route path="settings" element={<Settings />} />
-        </Route>
-      </Routes>
-    </HashRouter>
+    <AuthProvider>
+      <SignInGate>
+        <BrowserRouter>
+          <Routes>
+            <Route element={<Layout />}>
+              <Route index element={<Overview />} />
+              <Route path="goals" element={<Goals />} />
+              <Route path="portfolio" element={<Portfolio />} />
+              <Route path="loans" element={<Loans />} />
+              <Route path="savings" element={<Savings />} />
+              <Route path="settings" element={<Settings />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </SignInGate>
+    </AuthProvider>
   )
 }
 

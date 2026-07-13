@@ -1,6 +1,7 @@
-import { useLiveQuery } from 'dexie-react-hooks'
 import { Link } from 'react-router-dom'
-import { db } from '@/db/db'
+import { useAuthUser } from '@/lib/AuthContext'
+import { useFirestoreCollection, useFirestoreDoc } from '@/db/firestore'
+import type { Holding, Goal, Loan, Contribution, SavingsPlan } from '@/db/db'
 import { StatTile } from '@/components/StatTile'
 import { ProgressBar } from '@/components/ProgressBar'
 import { AllocationBar } from '@/components/AllocationBar'
@@ -17,11 +18,13 @@ import {
 } from '@/lib/calc'
 
 export function Overview() {
-  const holdings = useLiveQuery(() => db.holdings.toArray(), [], [])
-  const loans = useLiveQuery(() => db.loans.toArray(), [], [])
-  const goals = useLiveQuery(() => db.goals.orderBy('priority').toArray(), [], [])
-  const contributions = useLiveQuery(() => db.contributions.toArray(), [], [])
-  const plan = useLiveQuery(() => db.savingsPlan.toCollection().first(), [])
+  const user = useAuthUser()
+  const uid = user?.uid
+  const holdings = useFirestoreCollection<Holding>(uid, 'holdings')
+  const loans = useFirestoreCollection<Loan>(uid, 'loans')
+  const goals = useFirestoreCollection<Goal>(uid, 'goals')
+  const contributions = useFirestoreCollection<Contribution>(uid, 'contributions')
+  const plan = useFirestoreDoc<SavingsPlan>(uid, 'savingsPlan', 'main')
 
   if (!holdings || !loans || !goals || !contributions) return null
 
@@ -33,7 +36,10 @@ export function Overview() {
   const monthContributions = contributionsForMonth(contributions, monthKey)
   const savedThisMonth = totalContributedPaise(monthContributions)
   const monthlyTarget = plan?.monthlyTotalPaise ?? 0
-  const topGoals = goals.slice(0, 3).map(goalProgress)
+  const topGoals = [...goals]
+    .sort((a, b) => a.priority - b.priority)
+    .slice(0, 3)
+    .map(goalProgress)
 
   return (
     <div className="space-y-6">

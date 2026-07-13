@@ -1,13 +1,16 @@
 import { useRef } from 'react'
-import { db } from '@/db/db'
+import type { Holding, Goal, Loan, SavingsPlan, Contribution } from '@/db/db'
+import { getCollectionOnce, putDoc } from '@/db/firestore'
+import { useAuthUser } from '@/lib/AuthContext'
+import { signOutUser } from '@/lib/auth'
 
-async function exportBackup() {
+async function exportBackup(uid: string) {
   const data = {
-    holdings: await db.holdings.toArray(),
-    goals: await db.goals.toArray(),
-    loans: await db.loans.toArray(),
-    savingsPlan: await db.savingsPlan.toArray(),
-    contributions: await db.contributions.toArray(),
+    holdings: await getCollectionOnce<Holding>(uid, 'holdings'),
+    goals: await getCollectionOnce<Goal>(uid, 'goals'),
+    loans: await getCollectionOnce<Loan>(uid, 'loans'),
+    savingsPlan: await getCollectionOnce<SavingsPlan>(uid, 'savingsPlan'),
+    contributions: await getCollectionOnce<Contribution>(uid, 'contributions'),
     exportedAt: new Date().toISOString(),
   }
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
@@ -19,25 +22,28 @@ async function exportBackup() {
   URL.revokeObjectURL(url)
 }
 
-async function importBackup(file: File) {
+async function importBackup(uid: string, file: File) {
   const text = await file.text()
   const data = JSON.parse(text)
-  await db.transaction('rw', db.holdings, db.goals, db.loans, db.savingsPlan, db.contributions, async () => {
-    if (data.holdings) await db.holdings.bulkPut(data.holdings)
-    if (data.goals) await db.goals.bulkPut(data.goals)
-    if (data.loans) await db.loans.bulkPut(data.loans)
-    if (data.savingsPlan) await db.savingsPlan.bulkPut(data.savingsPlan)
-    if (data.contributions) await db.contributions.bulkPut(data.contributions)
-  })
+  const writes: Promise<void>[] = []
+  for (const h of data.holdings ?? []) writes.push(putDoc<Holding>(uid, 'holdings', h))
+  for (const g of data.goals ?? []) writes.push(putDoc<Goal>(uid, 'goals', g))
+  for (const l of data.loans ?? []) writes.push(putDoc<Loan>(uid, 'loans', l))
+  for (const p of data.savingsPlan ?? []) writes.push(putDoc<SavingsPlan>(uid, 'savingsPlan', p))
+  for (const c of data.contributions ?? []) writes.push(putDoc<Contribution>(uid, 'contributions', c))
+  await Promise.all(writes)
 }
 
 export function Settings() {
+  const user = useAuthUser()
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  if (!user) return null
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    await importBackup(file)
+    await importBackup(user!.uid, file)
     e.target.value = ''
     alert('Backup imported.')
   }
@@ -47,13 +53,33 @@ export function Settings() {
       <h1 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Settings</h1>
 
       <section className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+        <h2 className="mb-1 font-medium text-neutral-800 dark:text-neutral-200">Account</h2>
+        <div className="mb-3 flex items-center gap-3">
+          {user.photoURL && <img src={user.photoURL} alt="" className="h-9 w-9 rounded-full" />}
+          <div className="text-sm">
+            <div className="font-medium text-neutral-800 dark:text-neutral-200">{user.displayName}</div>
+            <div className="text-neutral-400">{user.email}</div>
+          </div>
+        </div>
+        <p className="mb-3 text-sm text-neutral-400">
+          Your data syncs automatically across every device signed in to this account.
+        </p>
+        <button
+          onClick={() => signOutUser()}
+          className="rounded-lg border border-neutral-300 px-3 py-1.5 text-sm font-medium text-neutral-600 hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+        >
+          Sign out
+        </button>
+      </section>
+
+      <section className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
         <h2 className="mb-1 font-medium text-neutral-800 dark:text-neutral-200">Backup & restore</h2>
         <p className="mb-3 text-sm text-neutral-400">
-          Your data lives only on this device. Export a backup regularly, or before switching devices.
+          A manual point-in-time export/import, independent of the automatic sync above.
         </p>
         <div className="flex gap-2">
           <button
-            onClick={exportBackup}
+            onClick={() => exportBackup(user.uid)}
             className="rounded-lg bg-accent px-3 py-1.5 text-sm font-medium text-white hover:opacity-90"
           >
             Export backup
@@ -66,11 +92,6 @@ export function Settings() {
           </button>
           <input ref={fileInputRef} type="file" accept="application/json" hidden onChange={handleFileChange} />
         </div>
-      </section>
-
-      <section className="rounded-xl border border-dashed border-neutral-300 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-900">
-        <h2 className="mb-1 font-medium text-neutral-800 dark:text-neutral-200">Google Drive sync</h2>
-        <p className="text-sm text-neutral-400">Coming soon — automatic encrypted sync across your devices.</p>
       </section>
 
       <section className="rounded-xl border border-dashed border-neutral-300 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-900">

@@ -1,16 +1,17 @@
 # Finance Tracking
 
-App for tracking finances for personal use — a personal, installable PWA for
-tracking savings goals, loans, and portfolio allocation — local-first (data
-stays in the browser's IndexedDB, never sent to a server) with a manual JSON
-backup/restore flow.
+A personal, installable PWA for tracking savings goals, loans, and portfolio
+allocation. Data lives in Firestore, scoped per Google account via Firebase
+Authentication and locked down by security rules (`firestore.rules`) so only
+you can ever read or write your own data — with real-time sync across devices.
 
-**Live app:** https://ashoklamichhane.github.io/finance-tracking/
+**Live app:** https://ashok-finance-tracking.web.app
 
 ## Stack
 
-Vite + React + TypeScript, Tailwind CSS v4, Dexie (IndexedDB), Recharts,
-React Router (HashRouter, for GitHub Pages compatibility), Radix UI primitives.
+Vite + React + TypeScript, Tailwind CSS v4, Firebase (Auth + Firestore),
+Recharts, React Router, Radix UI primitives. Hosted on Firebase Hosting
+(Spark/free tier), project `ashok-finance-tracking` (Firestore in `asia-south1`).
 
 ## Development
 
@@ -19,19 +20,19 @@ npm install
 npm run dev
 ```
 
-## Build
+## Build & Deploy
 
 ```bash
 npm run build   # outputs to dist/
 npm run preview # serve the production build locally
+npm run deploy  # build + firebase deploy --only hosting,firestore:rules
 ```
 
-Deploys automatically to GitHub Pages via `.github/workflows/deploy.yml` on
-every push to `main`.
+Requires the [Firebase CLI](https://firebase.google.com/docs/cli) logged in
+(`firebase login`) with access to the project pinned in `.firebaserc`.
 
 ## Roadmap
 
-- Manual JSON export/import today (Settings page)
-- Google Drive sync (encrypted snapshot)
+- Manual JSON export/import (Settings page) — done
 - One-time import from an existing Google Sheet
-- Zerodha Kite Connect integration for live portfolio holdings
+- Zerodha Kite Connect integration for live portfolio holdings (via Cloud Run)

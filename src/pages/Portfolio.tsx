@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { useLiveQuery } from 'dexie-react-hooks'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
-import { db, type Holding, ASSET_CLASSES, type AssetClass } from '@/db/db'
+import { type Holding, ASSET_CLASSES, type AssetClass } from '@/db/db'
+import { useFirestoreCollection, putDoc, patchDoc, removeDoc } from '@/db/firestore'
+import { useAuthUser } from '@/lib/AuthContext'
 import { EntityForm } from '@/components/EntityForm'
 import { MoneyInput } from '@/components/MoneyInput'
 import { TextInput } from '@/components/TextInput'
@@ -34,7 +35,9 @@ function assetClassLabel(ac: AssetClass) {
 }
 
 export function Portfolio() {
-  const holdings = useLiveQuery(() => db.holdings.toArray(), [], [])
+  const user = useAuthUser()
+  const uid = user?.uid
+  const holdings = useFirestoreCollection<Holding>(uid, 'holdings')
   const [open, setOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [draft, setDraft] = useState<DraftHolding>(EMPTY_DRAFT)
@@ -60,7 +63,7 @@ export function Portfolio() {
   async function handleSubmit() {
     const now = Date.now()
     if (editingId) {
-      await db.holdings.update(editingId, {
+      await patchDoc(uid!, 'holdings', editingId, {
         name: draft.name,
         assetClass: draft.assetClass,
         platform: draft.platform,
@@ -69,7 +72,7 @@ export function Portfolio() {
         updatedAt: now,
       })
     } else {
-      await db.holdings.add({
+      await putDoc<Holding>(uid!, 'holdings', {
         id: newId(),
         name: draft.name,
         assetClass: draft.assetClass,
@@ -83,10 +86,10 @@ export function Portfolio() {
   }
 
   async function handleDelete(id: string) {
-    await db.holdings.delete(id)
+    await removeDoc(uid!, 'holdings', id)
   }
 
-  if (!holdings) return null
+  if (!uid || !holdings) return null
 
   const allocation = allocationByAssetClass(holdings)
   const total = totalPortfolioPaise(holdings)
