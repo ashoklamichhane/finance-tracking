@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react'
+import { Wallet } from 'lucide-react'
 import { signIn } from '@/lib/auth'
 import { useAuthUser } from '@/lib/AuthContext'
 
@@ -25,15 +26,18 @@ export function SignInGate({ children }: { children: ReactNode }) {
     }
 
     return (
-      <div className="flex min-h-svh flex-col items-center justify-center gap-4 bg-neutral-50 px-4 dark:bg-neutral-950">
-        <h1 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Savings & Portfolio</h1>
+      <div className="flex min-h-svh flex-col items-center justify-center gap-4 bg-gradient-to-b from-neutral-50 to-white px-4 dark:from-neutral-950 dark:to-neutral-900">
+        <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/10 text-accent">
+          <Wallet size={28} strokeWidth={2.25} />
+        </span>
+        <h1 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">Savings & Portfolio</h1>
         <p className="max-w-xs text-center text-sm text-neutral-500">
           Sign in with Google to sync your goals, portfolio, and loans across devices.
         </p>
         <button
           onClick={handleSignIn}
           disabled={signingIn}
-          className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+          className="rounded-xl bg-accent px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:opacity-90 disabled:opacity-50"
         >
           {signingIn ? 'Signing in…' : 'Sign in with Google'}
         </button>

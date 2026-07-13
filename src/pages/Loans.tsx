@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, Landmark, Wallet } from 'lucide-react'
 import { type Loan } from '@/db/db'
 import { useFirestoreCollection, putDoc, patchDoc, removeDoc } from '@/db/firestore'
 import { useAuthUser } from '@/lib/AuthContext'
@@ -92,18 +92,29 @@ export function Loans() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Loans</h1>
+        <h1 className="flex items-center gap-2 text-xl font-bold text-neutral-900 dark:text-neutral-100">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400">
+            <Landmark size={16} strokeWidth={2.25} />
+          </span>
+          Loans
+        </h1>
         <button
           onClick={openNew}
-          className="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-sm font-medium text-white hover:opacity-90"
+          className="flex items-center gap-1.5 rounded-lg bg-orange-600 px-3 py-1.5 text-sm font-medium text-white hover:opacity-90"
         >
           <Plus size={16} /> Add loan
         </button>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <StatTile label="Total outstanding" value={formatCompactPaise(totalOutstandingLoansPaise(loans))} tone={loans.length > 0 ? 'negative' : 'default'} />
-        <StatTile label="Total EMI / month" value={formatCompactPaise(totalEmiPaise(loans))} />
+        <StatTile
+          label="Total outstanding"
+          value={formatCompactPaise(totalOutstandingLoansPaise(loans))}
+          tone={loans.length > 0 ? 'negative' : 'default'}
+          icon={Landmark}
+          tint="orange"
+        />
+        <StatTile label="Total EMI / month" value={formatCompactPaise(totalEmiPaise(loans))} icon={Wallet} tint="neutral" />
       </div>
 
       {loans.length === 0 ? (
@@ -113,7 +124,7 @@ export function Loans() {
           {loans.map((loan) => (
             <li
               key={loan.id}
-              className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white p-3 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
+              className="flex items-center justify-between rounded-2xl border border-neutral-200 bg-white p-3.5 shadow-sm transition-shadow hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900"
             >
               <div>
                 <div className="font-medium text-neutral-900 dark:text-neutral-100">{loan.name}</div>

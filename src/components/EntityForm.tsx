@@ -21,7 +21,7 @@ export function EntityForm({ open, onOpenChange, title, onSubmit, children, foot
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40 data-[state=open]:animate-in data-[state=open]:fade-in" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[min(90vw,480px)] -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white p-5 shadow-xl dark:bg-neutral-900">
+        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[min(90vw,480px)] -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-5 shadow-2xl dark:bg-neutral-900">
           <div className="mb-4 flex items-center justify-between">
             <Dialog.Title className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
               {title}

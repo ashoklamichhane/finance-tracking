@@ -83,14 +83,14 @@ export function AllocationBar({ allocation }: { allocation: AllocationSlice[] })
 
   if (slices.length === 0) {
     return (
-      <div className="rounded-xl border border-neutral-200 bg-white p-4 text-sm text-neutral-400 dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="rounded-2xl border border-neutral-200 bg-white p-4 text-sm text-neutral-400 dark:border-neutral-800 dark:bg-neutral-900">
         No holdings yet — add one to see your allocation.
       </div>
     )
   }
 
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+    <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
       <div className="mb-3 text-sm font-medium text-neutral-500 dark:text-neutral-400">
         Portfolio allocation
       </div>

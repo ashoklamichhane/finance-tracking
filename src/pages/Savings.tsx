@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, PiggyBank, Target } from 'lucide-react'
 import { ASSET_CLASSES, type AssetClass, type SavingsSplit, type SavingsPlan, type Contribution } from '@/db/db'
 import { useFirestoreCollection, useFirestoreDoc, putDoc, removeDoc } from '@/db/firestore'
 import { useAuthUser } from '@/lib/AuthContext'
@@ -104,7 +104,12 @@ export function Savings() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Savings</h1>
+        <h1 className="flex items-center gap-2 text-xl font-bold text-neutral-900 dark:text-neutral-100">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-50 text-teal-600 dark:bg-teal-500/10 dark:text-teal-400">
+            <PiggyBank size={16} strokeWidth={2.25} />
+          </span>
+          Savings
+        </h1>
         <button
           onClick={openPlanEditor}
           className="rounded-lg border border-neutral-300 px-3 py-1.5 text-sm font-medium text-neutral-600 hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
@@ -114,16 +119,18 @@ export function Savings() {
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <StatTile label="Monthly target" value={formatCompactPaise(plan?.monthlyTotalPaise ?? 0)} />
+        <StatTile label="Monthly target" value={formatCompactPaise(plan?.monthlyTotalPaise ?? 0)} icon={Target} tint="teal" />
         <StatTile
           label="Saved this month"
           value={formatCompactPaise(savedThisMonth)}
           tone={plan && savedThisMonth >= plan.monthlyTotalPaise ? 'positive' : 'default'}
+          icon={PiggyBank}
+          tint="teal"
         />
       </div>
 
       {comparison.length > 0 && (
-        <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+        <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
           <div className="mb-3 text-sm font-medium text-neutral-500 dark:text-neutral-400">
             Planned vs actual this month
           </div>
@@ -140,12 +147,12 @@ export function Savings() {
         </div>
       )}
 
-      <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
         <div className="mb-3 flex items-center justify-between">
           <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">Contribution log</span>
           <button
             onClick={openContribNew}
-            className="flex items-center gap-1 text-sm font-medium text-accent hover:underline"
+            className="flex items-center gap-1 text-sm font-medium text-teal-600 hover:underline dark:text-teal-400"
           >
             <Plus size={14} /> Log contribution
           </button>
@@ -220,7 +227,7 @@ export function Savings() {
           <button
             type="button"
             onClick={addSplitRow}
-            className="flex items-center gap-1 text-sm font-medium text-accent hover:underline"
+            className="flex items-center gap-1 text-sm font-medium text-teal-600 hover:underline dark:text-teal-400"
           >
             <Plus size={14} /> Add row
           </button>

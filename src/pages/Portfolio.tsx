@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, PieChart as PieChartIcon } from 'lucide-react'
 import { type Holding, ASSET_CLASSES, type AssetClass } from '@/db/db'
 import { useFirestoreCollection, putDoc, patchDoc, removeDoc } from '@/db/firestore'
 import { useAuthUser } from '@/lib/AuthContext'
@@ -97,16 +97,21 @@ export function Portfolio() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Portfolio</h1>
+        <h1 className="flex items-center gap-2 text-xl font-bold text-neutral-900 dark:text-neutral-100">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
+            <PieChartIcon size={16} strokeWidth={2.25} />
+          </span>
+          Portfolio
+        </h1>
         <button
           onClick={openNew}
-          className="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-sm font-medium text-white hover:opacity-90"
+          className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:opacity-90"
         >
           <Plus size={16} /> Add holding
         </button>
       </div>
 
-      <StatTile label="Total portfolio value" value={formatCompactPaise(total)} />
+      <StatTile label="Total portfolio value" value={formatCompactPaise(total)} icon={PieChartIcon} tint="blue" />
       <AllocationBar allocation={allocation} />
 
       {holdings.length === 0 ? (
@@ -116,7 +121,7 @@ export function Portfolio() {
           {holdings.map((h) => (
             <li
               key={h.id}
-              className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white p-3 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
+              className="flex items-center justify-between rounded-2xl border border-neutral-200 bg-white p-3.5 shadow-sm transition-shadow hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900"
             >
               <div>
                 <div className="font-medium text-neutral-900 dark:text-neutral-100">{h.name}</div>

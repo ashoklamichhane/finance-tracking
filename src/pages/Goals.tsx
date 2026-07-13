@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, Target, CheckCircle2 } from 'lucide-react'
 import { type Goal } from '@/db/db'
 import { useFirestoreCollection, putDoc, patchDoc, removeDoc } from '@/db/firestore'
 import { useAuthUser } from '@/lib/AuthContext'
@@ -10,6 +10,7 @@ import { ProgressBar } from '@/components/ProgressBar'
 import { newId } from '@/lib/id'
 import { paiseToRupees, rupeesToPaise, formatCompactPaise } from '@/lib/money'
 import { goalProgress } from '@/lib/calc'
+import { cn } from '@/lib/utils'
 
 interface DraftGoal {
   name: string
@@ -99,10 +100,15 @@ export function Goals() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Goals</h1>
+        <h1 className="flex items-center gap-2 text-xl font-bold text-neutral-900 dark:text-neutral-100">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-400">
+            <Target size={16} strokeWidth={2.25} />
+          </span>
+          Goals
+        </h1>
         <button
           onClick={openNew}
-          className="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-sm font-medium text-white hover:opacity-90"
+          className="flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:opacity-90"
         >
           <Plus size={16} /> Add goal
         </button>
@@ -114,14 +120,21 @@ export function Goals() {
         <ul className="space-y-3">
           {goals.map((goal) => {
             const { progressPct, projectedDate, remainingPaise } = goalProgress(goal)
+            const isComplete = progressPct >= 100
             return (
               <li
                 key={goal.id}
-                className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
+                className={cn(
+                  'rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900',
+                  isComplete && 'opacity-70',
+                )}
               >
                 <div className="mb-1 flex items-start justify-between gap-2">
                   <div>
-                    <div className="font-medium text-neutral-900 dark:text-neutral-100">{goal.name}</div>
+                    <div className="flex items-center gap-1.5 font-medium text-neutral-900 dark:text-neutral-100">
+                      {goal.name}
+                      {isComplete && <CheckCircle2 size={15} className="text-green-500" />}
+                    </div>
                     {goal.category && <div className="text-xs text-neutral-400">{goal.category}</div>}
                   </div>
                   <div className="flex gap-1">

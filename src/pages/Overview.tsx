@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { Wallet, PieChart, Landmark, PiggyBank } from 'lucide-react'
 import { useAuthUser } from '@/lib/AuthContext'
 import { useFirestoreCollection, useFirestoreDoc } from '@/db/firestore'
 import type { Holding, Goal, Loan, Contribution, SavingsPlan } from '@/db/db'
@@ -43,21 +44,40 @@ export function Overview() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatTile label="Net worth" value={formatCompactPaise(netWorth)} />
-        <StatTile label="Portfolio" value={formatCompactPaise(portfolioTotal)} />
-        <StatTile label="Loans outstanding" value={formatCompactPaise(loanTotal)} tone={loanTotal > 0 ? 'negative' : 'default'} />
+      <div className="rounded-2xl border border-neutral-200 bg-gradient-to-br from-white to-neutral-50 p-5 shadow-sm dark:border-neutral-800 dark:from-neutral-900 dark:to-neutral-950">
+        <div className="flex items-center gap-2 text-sm font-medium text-neutral-500 dark:text-neutral-400">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10 text-accent">
+            <Wallet size={14} strokeWidth={2.25} />
+          </span>
+          Net worth
+        </div>
+        <div className="mt-2 text-5xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
+          {formatCompactPaise(netWorth)}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-3">
+        <StatTile label="Portfolio" value={formatCompactPaise(portfolioTotal)} icon={PieChart} tint="blue" />
         <StatTile
-          label="Saved this month"
+          label="Loans"
+          value={formatCompactPaise(loanTotal)}
+          tone={loanTotal > 0 ? 'negative' : 'default'}
+          icon={Landmark}
+          tint="orange"
+        />
+        <StatTile
+          label="Saved"
           value={formatCompactPaise(savedThisMonth)}
-          sublabel={monthlyTarget > 0 ? `of ${formatCompactPaise(monthlyTarget)} target` : undefined}
+          sublabel={monthlyTarget > 0 ? `of ${formatCompactPaise(monthlyTarget)}` : undefined}
           tone={monthlyTarget > 0 && savedThisMonth >= monthlyTarget ? 'positive' : 'default'}
+          icon={PiggyBank}
+          tint="teal"
         />
       </div>
 
       <AllocationBar allocation={allocation} />
 
-      <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
         <div className="mb-3 flex items-center justify-between">
           <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">Top goals</span>
           <Link to="/goals" className="text-xs font-medium text-accent hover:underline">

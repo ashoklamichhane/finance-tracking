@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { Settings as SettingsIcon } from 'lucide-react'
 import type { Holding, Goal, Loan, SavingsPlan, Contribution } from '@/db/db'
 import { getCollectionOnce, putDoc } from '@/db/firestore'
 import { useAuthUser } from '@/lib/AuthContext'
@@ -50,12 +51,17 @@ export function Settings() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Settings</h1>
+      <h1 className="flex items-center gap-2 text-xl font-bold text-neutral-900 dark:text-neutral-100">
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
+          <SettingsIcon size={16} strokeWidth={2.25} />
+        </span>
+        Settings
+      </h1>
 
-      <section className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-        <h2 className="mb-1 font-medium text-neutral-800 dark:text-neutral-200">Account</h2>
+      <section className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+        <h2 className="mb-3 font-semibold text-neutral-800 dark:text-neutral-200">Account</h2>
         <div className="mb-3 flex items-center gap-3">
-          {user.photoURL && <img src={user.photoURL} alt="" className="h-9 w-9 rounded-full" />}
+          {user.photoURL && <img src={user.photoURL} alt="" className="h-10 w-10 rounded-full" />}
           <div className="text-sm">
             <div className="font-medium text-neutral-800 dark:text-neutral-200">{user.displayName}</div>
             <div className="text-neutral-400">{user.email}</div>
@@ -72,8 +78,8 @@ export function Settings() {
         </button>
       </section>
 
-      <section className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-        <h2 className="mb-1 font-medium text-neutral-800 dark:text-neutral-200">Backup & restore</h2>
+      <section className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+        <h2 className="mb-1 font-semibold text-neutral-800 dark:text-neutral-200">Backup & restore</h2>
         <p className="mb-3 text-sm text-neutral-400">
           A manual point-in-time export/import, independent of the automatic sync above.
         </p>
@@ -92,13 +98,6 @@ export function Settings() {
           </button>
           <input ref={fileInputRef} type="file" accept="application/json" hidden onChange={handleFileChange} />
         </div>
-      </section>
-
-      <section className="rounded-xl border border-dashed border-neutral-300 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-900">
-        <h2 className="mb-1 font-medium text-neutral-800 dark:text-neutral-200">Import from Google Sheet</h2>
-        <p className="text-sm text-neutral-400">
-          Coming soon — one-time import from your existing savings spreadsheet.
-        </p>
       </section>
     </div>
   )
