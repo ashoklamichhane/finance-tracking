@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Pencil, Trash2, CheckCircle2, ChevronDown, ChevronUp, ArrowUpDown } from 'lucide-react'
+import { Plus, Pencil, Trash2, CheckCircle2, ArrowUpDown, GripVertical } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { type Goal, type Holding } from '@/db/db'
 import { useFirestoreCollection, putDoc, patchDoc, removeDoc } from '@/db/firestore'
@@ -47,9 +47,14 @@ export function Goals() {
   const [draft, setDraft] = useState<DraftGoal>(EMPTY_DRAFT)
   const [linkedHoldingIds, setLinkedHoldingIds] = useState<string[]>([])
   const [reorderMode, setReorderMode] = useState(false)
+  const [reorderIds, setReorderIds] = useState<string[]>([])
+  const [draggingId, setDraggingId] = useState<string | null>(null)
 
   if (!uid || !goalsRaw || !holdings) return null
   const goals = [...goalsRaw].sort((a, b) => a.priority - b.priority)
+  const orderedGoals = reorderMode && reorderIds.length === goals.length
+    ? reorderIds.map((id) => goals.find((goal) => goal.id === id)).filter((goal): goal is Goal => Boolean(goal))
+    : goals
 
   function openNew() {
     setEditingId(null)
@@ -112,14 +117,49 @@ export function Goals() {
     await removeDoc(uid!, 'goals', id)
   }
 
-  async function moveGoal(index: number, direction: -1 | 1) {
-    const other = goals[index + direction]
-    const current = goals[index]
-    if (!other) return
-    await Promise.all([
-      patchDoc(uid!, 'goals', current.id, { priority: other.priority, updatedAt: Date.now() }),
-      patchDoc(uid!, 'goals', other.id, { priority: current.priority, updatedAt: Date.now() }),
-    ])
+  async function saveOrder(ids: string[]) {
+    await Promise.all(ids.map((id, priority) => patchDoc(uid!, 'goals', id, { priority, updatedAt: Date.now() })))
+  }
+
+  async function toggleReorder() {
+    if (reorderMode) {
+      await saveOrder(reorderIds)
+      setDraggingId(null)
+      setReorderMode(false)
+      return
+    }
+    setReorderIds(goals.map((goal) => goal.id))
+    setReorderMode(true)
+  }
+
+  function startDrag(event: React.PointerEvent<HTMLButtonElement>, id: string) {
+    if (!reorderMode) return
+    event.preventDefault()
+    event.currentTarget.setPointerCapture(event.pointerId)
+    setDraggingId(id)
+  }
+
+  function dragOver(event: React.PointerEvent<HTMLButtonElement>) {
+    if (!draggingId) return
+    const element = document.elementFromPoint(event.clientX, event.clientY)
+    const targetId = element?.closest<HTMLElement>('[data-goal-id]')?.dataset.goalId
+    if (!targetId || targetId === draggingId) return
+    setReorderIds((ids) => {
+      const from = ids.indexOf(draggingId)
+      const to = ids.indexOf(targetId)
+      if (from < 0 || to < 0 || from === to) return ids
+      const next = [...ids]
+      next.splice(from, 1)
+      next.splice(to, 0, draggingId)
+      return next
+    })
+  }
+
+  async function finishDrag(event: React.PointerEvent<HTMLButtonElement>) {
+    if (!draggingId) return
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId)
+    setDraggingId(null)
+    await saveOrder(reorderIds)
   }
 
   return (
@@ -127,7 +167,7 @@ export function Goals() {
       <div className="flex items-center justify-between">
         <h1 className="font-serif text-2xl font-semibold tracking-tight text-ink">Goals</h1>
         <div className="flex items-center gap-2">
-          <button onClick={() => setReorderMode((mode) => !mode)} className={cn('flex items-center gap-1.5 rounded-full px-3 py-2.5 text-[13px] font-semibold', reorderMode ? 'bg-ink text-cream' : 'bg-ink/6 text-ink/70')}>
+          <button onClick={toggleReorder} className={cn('flex items-center gap-1.5 rounded-full px-3 py-2.5 text-[13px] font-semibold', reorderMode ? 'bg-ink text-cream' : 'bg-ink/6 text-ink/70')}>
             <ArrowUpDown size={14} /> {reorderMode ? 'Done' : 'Reorder'}
           </button>
           <button
@@ -143,13 +183,14 @@ export function Goals() {
         <p className="py-10 text-center text-sm text-ink/35">No goals yet. Add your first one.</p>
       ) : (
         <ul className="space-y-2.5">
-          {goals.map((goal, index) => {
+          {orderedGoals.map((goal) => {
             const fundedPaise = linkedFundPaise(goal, holdings)
             const { progressPct, projectedDate, remainingPaise } = goalProgress({ ...goal, currentAmountPaise: fundedPaise })
             const isComplete = progressPct >= 100
             return (
               <li
                 key={goal.id}
+                data-goal-id={goal.id}
                 role="button"
                 tabIndex={0}
                 onClick={() => !reorderMode && navigate(`/goals/${goal.id}`)}
@@ -158,6 +199,7 @@ export function Goals() {
                   'cursor-pointer rounded-[22px] border border-ink/7 bg-surface p-4 shadow-sm shadow-ink/5 transition-colors hover:border-accent/30',
                   isComplete && 'opacity-70',
                   reorderMode && 'cursor-default border-ink/15',
+                  draggingId === goal.id && 'scale-[1.01] opacity-60 shadow-lg',
                 )}
               >
                 <div className="mb-2.5 flex items-start justify-between gap-2">
@@ -169,10 +211,7 @@ export function Goals() {
                     {goal.category && <div className="mt-px text-xs text-ink/40">{goal.category}</div>}
                   </div>
                   <div className="flex gap-1">
-                    {reorderMode && <>
-                      <button onClick={(event) => { event.stopPropagation(); moveGoal(index, -1) }} disabled={index === 0} className="flex h-9 items-center gap-1 rounded-lg bg-ink/6 px-2 text-[11px] font-semibold text-ink/60 disabled:opacity-25" aria-label="Move goal up"><ChevronUp size={14} /> Up</button>
-                      <button onClick={(event) => { event.stopPropagation(); moveGoal(index, 1) }} disabled={index === goals.length - 1} className="flex h-9 items-center gap-1 rounded-lg bg-ink/6 px-2 text-[11px] font-semibold text-ink/60 disabled:opacity-25" aria-label="Move goal down"><ChevronDown size={14} /> Down</button>
-                    </>}
+                    {reorderMode && <button type="button" onPointerDown={(event) => startDrag(event, goal.id)} onPointerMove={dragOver} onPointerUp={finishDrag} onPointerCancel={finishDrag} onClick={(event) => event.stopPropagation()} className="flex h-9 w-9 touch-none cursor-grab items-center justify-center rounded-lg bg-ink/6 text-ink/55 active:cursor-grabbing" aria-label={`Hold and drag ${goal.name} to reorder`}><GripVertical size={17} /></button>}
                     <button
                       onClick={(event) => { event.stopPropagation(); openEdit(goal) }}
                       className="flex h-[30px] w-[30px] items-center justify-center rounded-lg bg-ink/5 text-ink/50 hover:bg-ink/10"
