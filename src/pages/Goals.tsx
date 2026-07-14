@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Plus, Pencil, Trash2, CheckCircle2, ArrowUpDown, GripVertical } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { type Goal, type Holding } from '@/db/db'
@@ -49,6 +49,7 @@ export function Goals() {
   const [reorderMode, setReorderMode] = useState(false)
   const [reorderIds, setReorderIds] = useState<string[]>([])
   const [draggingId, setDraggingId] = useState<string | null>(null)
+  const reorderIdsRef = useRef<string[]>([])
 
   if (!uid || !goalsRaw || !holdings) return null
   const goals = [...goalsRaw].sort((a, b) => a.priority - b.priority)
@@ -123,43 +124,50 @@ export function Goals() {
 
   async function toggleReorder() {
     if (reorderMode) {
-      await saveOrder(reorderIds)
+      await saveOrder(reorderIdsRef.current)
       setDraggingId(null)
       setReorderMode(false)
       return
     }
-    setReorderIds(goals.map((goal) => goal.id))
+    const ids = goals.map((goal) => goal.id)
+    reorderIdsRef.current = ids
+    setReorderIds(ids)
     setReorderMode(true)
   }
 
-  function startDrag(event: React.PointerEvent<HTMLButtonElement>, id: string) {
+  function startDrag(event: React.PointerEvent<HTMLLIElement>, id: string) {
     if (!reorderMode) return
     event.preventDefault()
     event.currentTarget.setPointerCapture(event.pointerId)
     setDraggingId(id)
   }
 
-  function dragOver(event: React.PointerEvent<HTMLButtonElement>) {
+  function dragOver(event: React.PointerEvent<HTMLLIElement>) {
     if (!draggingId) return
-    const element = document.elementFromPoint(event.clientX, event.clientY)
-    const targetId = element?.closest<HTMLElement>('[data-goal-id]')?.dataset.goalId
-    if (!targetId || targetId === draggingId) return
     setReorderIds((ids) => {
       const from = ids.indexOf(draggingId)
-      const to = ids.indexOf(targetId)
-      if (from < 0 || to < 0 || from === to) return ids
-      const next = [...ids]
-      next.splice(from, 1)
+      if (from < 0) return ids
+      const candidates = Array.from(document.querySelectorAll<HTMLElement>('[data-goal-id]'))
+        .filter((element) => element.dataset.goalId !== draggingId)
+      const insertBefore = candidates.find((element) => {
+        const rect = element.getBoundingClientRect()
+        return event.clientY < rect.top + rect.height / 2
+      })
+      const next = ids.filter((id) => id !== draggingId)
+      const to = insertBefore ? next.indexOf(insertBefore.dataset.goalId ?? '') : next.length
+      if (to < 0) return ids
       next.splice(to, 0, draggingId)
+      if (next.every((id, index) => id === ids[index])) return ids
+      reorderIdsRef.current = next
       return next
     })
   }
 
-  async function finishDrag(event: React.PointerEvent<HTMLButtonElement>) {
+  async function finishDrag(event: React.PointerEvent<HTMLLIElement>) {
     if (!draggingId) return
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId)
     setDraggingId(null)
-    await saveOrder(reorderIds)
+    await saveOrder(reorderIdsRef.current)
   }
 
   return (
@@ -195,10 +203,14 @@ export function Goals() {
                 tabIndex={0}
                 onClick={() => !reorderMode && navigate(`/goals/${goal.id}`)}
                 onKeyDown={(event) => { if (!reorderMode && (event.key === 'Enter' || event.key === ' ')) navigate(`/goals/${goal.id}`) }}
+                onPointerDown={(event) => startDrag(event, goal.id)}
+                onPointerMove={dragOver}
+                onPointerUp={finishDrag}
+                onPointerCancel={finishDrag}
                 className={cn(
                   'cursor-pointer rounded-[22px] border border-ink/7 bg-surface p-4 shadow-sm shadow-ink/5 transition-colors hover:border-accent/30',
                   isComplete && 'opacity-70',
-                  reorderMode && 'cursor-default border-ink/15',
+                  reorderMode && 'touch-none cursor-grab select-none border-ink/15 active:cursor-grabbing',
                   draggingId === goal.id && 'scale-[1.01] opacity-60 shadow-lg',
                 )}
               >
@@ -211,7 +223,7 @@ export function Goals() {
                     {goal.category && <div className="mt-px text-xs text-ink/40">{goal.category}</div>}
                   </div>
                   <div className="flex gap-1">
-                    {reorderMode && <button type="button" onPointerDown={(event) => startDrag(event, goal.id)} onPointerMove={dragOver} onPointerUp={finishDrag} onPointerCancel={finishDrag} onClick={(event) => event.stopPropagation()} className="flex h-9 w-9 touch-none cursor-grab items-center justify-center rounded-lg bg-ink/6 text-ink/55 active:cursor-grabbing" aria-label={`Hold and drag ${goal.name} to reorder`}><GripVertical size={17} /></button>}
+                    {reorderMode ? <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-ink/6 text-ink/55" aria-label="Drag this goal"><GripVertical size={17} /></span> : <>
                     <button
                       onClick={(event) => { event.stopPropagation(); openEdit(goal) }}
                       className="flex h-[30px] w-[30px] items-center justify-center rounded-lg bg-ink/5 text-ink/50 hover:bg-ink/10"
@@ -226,6 +238,7 @@ export function Goals() {
                     >
                       <Trash2 size={14} />
                     </button>
+                    </>}
                   </div>
                 </div>
                 <div className="mb-1.5 flex items-baseline justify-between text-[13.5px]">
