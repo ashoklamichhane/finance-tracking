@@ -27,8 +27,14 @@ function isInstalledWebApp(): boolean {
 // Firebase credential. Keep the OAuth window attached to the installed app
 // instead; regular browser sessions continue to use the mobile-friendly
 // redirect flow.
+//
+// Localhost has the same class of problem: the redirect round-trips through
+// the authDomain (a different origin), and browsers increasingly partition
+// storage across that hop, so getRedirectResult() comes back empty and the
+// sign-in silently no-ops. Popup avoids the cross-origin storage handoff, so
+// use it for local dev regardless of install state.
 export function signIn(): Promise<void> {
-  if (isInstalledWebApp()) {
+  if (isInstalledWebApp() || import.meta.env.DEV) {
     return signInWithPopup(auth, provider).then(() => undefined)
   }
 
