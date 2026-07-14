@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
+import { useSearchParams } from 'react-router-dom'
 import { ASSET_CLASSES, type AssetClass, type SavingsSplit, type SavingsPlan, type Contribution, type Goal } from '@/db/db'
 import { useFirestoreCollection, useFirestoreDoc, putDoc, removeDoc } from '@/db/firestore'
 import { useAuthUser } from '@/lib/AuthContext'
@@ -28,11 +29,14 @@ function assetClassLabel(ac: AssetClass) {
 export function Savings() {
   const user = useAuthUser()
   const uid = user?.uid
+  const [searchParams, setSearchParams] = useSearchParams()
+  const goalFilterId = searchParams.get('goalId') ?? ''
   const [selectedMonth, setSelectedMonth] = useState(() => currentMonthKey())
   const selectedPlan = useFirestoreDoc<SavingsPlan>(uid, 'savingsPlan', selectedMonth)
   const legacyPlan = useFirestoreDoc<SavingsPlan>(uid, 'savingsPlan', LEGACY_PLAN_ID)
   const contributionsRaw = useFirestoreCollection<Contribution>(uid, 'contributions')
   const goals = useFirestoreCollection<Goal>(uid, 'goals')
+  const selectedGoal = goals?.find((goal) => goal.id === goalFilterId)
 
   const [planOpen, setPlanOpen] = useState(false)
   const [monthlyTotalRupees, setMonthlyTotalRupees] = useState(0)
@@ -86,7 +90,7 @@ export function Savings() {
     setContribDate(new Date().toISOString().slice(0, 10))
     setContribAmountRupees(0)
     setContribAssetClass('mf')
-    setContribGoalId('')
+    setContribGoalId(goalFilterId)
     setContribNote('')
     setContribOpen(true)
   }
@@ -109,16 +113,17 @@ export function Savings() {
 
   if (!uid || !contributionsRaw || !goals) return null
   const contributions = [...contributionsRaw].sort((a, b) => b.date.localeCompare(a.date))
+  const visibleContributions = goalFilterId ? contributions.filter((contribution) => contribution.goalId === goalFilterId) : contributions
 
   const activePlan = selectedPlan ?? (selectedMonth === currentMonthKey() ? legacyPlan : undefined)
-  const monthContributions = contributionsForMonth(contributions, selectedMonth)
+  const monthContributions = contributionsForMonth(visibleContributions, selectedMonth)
   const savedThisMonth = totalContributedPaise(monthContributions)
   const pctOfSplit = splits.reduce((s, r) => s + r.targetPct, 0)
   const comparison = plannedVsActual(activePlan, monthContributions)
   const monthlyTarget = activePlan?.monthlyTotalPaise ?? 0
   const savedPct = monthlyTarget > 0 ? Math.min(100, (savedThisMonth / monthlyTarget) * 100) : 0
   const yearKey = selectedMonth.slice(0, 4)
-  const yearContributions = contributions.filter((contribution) => contribution.date.startsWith(yearKey))
+  const yearContributions = visibleContributions.filter((contribution) => contribution.date.startsWith(yearKey))
 
   return (
     <div className="space-y-4">
@@ -141,7 +146,7 @@ export function Savings() {
       <div className="rounded-[22px] border border-ink/7 bg-surface p-[18px] shadow-sm shadow-ink/5">
         <div className="flex items-baseline justify-between">
           <div>
-            <div className="text-[11.5px] font-semibold uppercase tracking-wide text-ink/50">Saved in {selectedMonth}</div>
+            <div className="text-[11.5px] font-semibold uppercase tracking-wide text-ink/50">{selectedGoal ? `${selectedGoal.name} · ` : ''}Saved in {selectedMonth}</div>
             <div
               className={`mt-1.5 font-serif text-2xl font-semibold ${monthlyTarget > 0 && savedThisMonth >= monthlyTarget ? 'text-sage' : 'text-ink'}`}
             >
@@ -187,16 +192,17 @@ export function Savings() {
 
       <div className="rounded-[22px] border border-ink/7 bg-surface p-[18px] shadow-sm shadow-ink/5">
         <div className="mb-3 flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-wide text-ink/50">Contribution Log</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-ink/50">{selectedGoal ? `${selectedGoal.name} savings` : 'Contribution Log'}</span>
+          {goalFilterId && <button onClick={() => setSearchParams({})} className="text-[13px] font-semibold text-ink/45">Show all savings</button>}
           <button onClick={openContribNew} className="flex items-center gap-1 text-[13px] font-semibold text-sage">
             <Plus size={12} strokeWidth={2.5} /> Log
           </button>
         </div>
-        {contributions.length === 0 ? (
+        {visibleContributions.length === 0 ? (
           <p className="py-4 text-center text-[13.5px] text-ink/35">No contributions logged yet.</p>
         ) : (
           <div className="space-y-2.5">
-            {contributions.map((c) => (
+            {visibleContributions.map((c) => (
               <div key={c.id} className="flex items-center justify-between text-[13.5px]">
                 <span className="text-ink/50">
                   {c.date} · {c.assetClass ? assetClassLabel(c.assetClass) : '—'}

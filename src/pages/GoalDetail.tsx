@@ -40,7 +40,7 @@ export function GoalDetail() {
   if (!goal) {
     return (
       <div className="space-y-4">
-        <BackButton />
+        <BackButton to="/goals" />
         <p className="text-sm text-ink/50">This goal no longer exists.</p>
       </div>
     )
@@ -52,6 +52,7 @@ export function GoalDetail() {
   const fundDifferencePaise = fundedPaise - remainingPaise
   const paymentPct = goal.targetAmountPaise > 0 ? Math.min(100, (paidPaise / goal.targetAmountPaise) * 100) : 0
   const fundPct = remainingPaise > 0 ? Math.min(100, (fundedPaise / remainingPaise) * 100) : 100
+  const trackingType = goal.trackingType ?? 'savings'
   const goalPayments = payments.filter((payment) => payment.goalId === goal.id).sort((a, b) => b.date.localeCompare(a.date))
   const goalContributions = contributions
     .filter((contribution) => contribution.goalId === goal.id)
@@ -77,7 +78,7 @@ export function GoalDetail() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex min-w-0 items-center gap-3">
-          <BackButton />
+          <BackButton to="/goals" />
           <div className="min-w-0">
             <h1 className="truncate font-serif text-2xl font-semibold tracking-tight text-ink">{goal.name}</h1>
             {goal.category && <p className="text-xs text-ink/45">{goal.category}</p>}
@@ -89,11 +90,13 @@ export function GoalDetail() {
       <div className="rounded-[22px] border border-ink/7 bg-surface p-[18px] shadow-sm shadow-ink/5">
         <div className="text-xs font-semibold uppercase tracking-wide text-ink/50">Goal cost</div>
         <div className="mt-1.5 font-serif text-3xl font-semibold text-ink">{formatCompactPaise(goal.targetAmountPaise)}</div>
-        <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-          <div className="rounded-xl bg-ink/[0.035] p-3"><div className="text-xs text-ink/45">Amount paid</div><div className="mt-1 font-semibold text-sage">{formatCompactPaise(paidPaise)}</div></div>
-          <div className="rounded-xl bg-ink/[0.035] p-3"><div className="text-xs text-ink/45">Still to pay</div><div className="mt-1 font-semibold text-ink">{formatCompactPaise(remainingPaise)}</div></div>
-        </div>
-        <ProgressBar pct={paymentPct} tone="sage" className="mt-3 h-2" />
+        {trackingType !== 'savings' ? <>
+          <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+            <div className="rounded-xl bg-ink/[0.035] p-3"><div className="text-xs text-ink/45">Amount paid</div><div className="mt-1 font-semibold text-sage">{formatCompactPaise(paidPaise)}</div></div>
+            <div className="rounded-xl bg-ink/[0.035] p-3"><div className="text-xs text-ink/45">Still to pay</div><div className="mt-1 font-semibold text-ink">{formatCompactPaise(remainingPaise)}</div></div>
+          </div>
+          <ProgressBar pct={paymentPct} tone="sage" className="mt-3 h-2" />
+        </> : <p className="mt-2 text-sm text-ink/45">Savings-only goal · linked funds are used for progress.</p>}
       </div>
 
       <div className="rounded-[22px] border border-ink/7 bg-surface p-[18px] shadow-sm shadow-ink/5">
@@ -106,15 +109,15 @@ export function GoalDetail() {
         {linkedHoldings.length > 0 ? <p className="mt-3 text-xs text-ink/45">{linkedHoldings.map((holding) => holding.name).join(' · ')}</p> : <p className="mt-3 text-xs text-ink/45">Choose one or more portfolio holdings to calculate this balance automatically.</p>}
       </div>
 
-      <div className="rounded-[22px] border border-ink/7 bg-surface p-[18px] shadow-sm shadow-ink/5">
+      {trackingType !== 'savings' && <div className="rounded-[22px] border border-ink/7 bg-surface p-[18px] shadow-sm shadow-ink/5">
         <div className="mb-3 flex items-center justify-between"><span className="text-xs font-semibold uppercase tracking-wide text-ink/50">Payment history</span><button onClick={() => { setPaymentDate(new Date().toISOString().slice(0, 10)); setPaymentAmount(0); setPaymentNote(''); setPaymentOpen(true) }} className="flex items-center gap-1 text-[13px] font-semibold text-accent"><Plus size={13} /> Add payment</button></div>
         {goalPayments.length === 0 ? <p className="text-sm text-ink/40">No payments recorded yet.</p> : <div className="space-y-2.5">{goalPayments.map((payment) => <div key={payment.id} className="flex justify-between gap-3 text-[13.5px]"><span className="text-ink/50">{payment.date}{payment.note && ` · ${payment.note}`}</span><span className="shrink-0 font-semibold tabular-nums text-ink/80">{formatPaise(payment.amountPaise)}</span></div>)}</div>}
-      </div>
+      </div>}
 
-      <div className="rounded-[22px] border border-ink/7 bg-surface p-[18px] shadow-sm shadow-ink/5">
-        <div className="mb-3 flex items-center justify-between"><span className="text-xs font-semibold uppercase tracking-wide text-ink/50">Savings history</span><Link to="/savings" className="text-[13px] font-semibold text-accent">Log savings</Link></div>
+      {trackingType !== 'payments' && <div className="rounded-[22px] border border-ink/7 bg-surface p-[18px] shadow-sm shadow-ink/5">
+        <div className="mb-3 flex items-center justify-between"><span className="text-xs font-semibold uppercase tracking-wide text-ink/50">Savings history</span><Link to={`/savings?goalId=${goal.id}`} className="text-[13px] font-semibold text-accent">View or log savings</Link></div>
         {goalContributions.length === 0 ? <p className="text-sm text-ink/40">No savings contributions linked to this goal yet.</p> : <div className="space-y-2.5">{goalContributions.map((contribution) => <div key={contribution.id} className="flex justify-between gap-3 text-[13.5px]"><span className="text-ink/50">{contribution.date}{contribution.note && ` · ${contribution.note}`}</span><span className="shrink-0 font-semibold tabular-nums text-ink/80">{formatPaise(contribution.amountPaise)}</span></div>)}</div>}
-      </div>
+      </div>}
 
       <EntityForm open={fundOpen} onOpenChange={setFundOpen} title="Linked portfolio funds" onSubmit={saveFundLinks} submitLabel="Save linked funds">
         <p className="text-sm text-ink/50">The live value of selected holdings becomes this goal’s fund balance.</p>

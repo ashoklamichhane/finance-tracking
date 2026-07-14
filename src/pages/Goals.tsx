@@ -1,12 +1,13 @@
 import { useState } from 'react'
-import { Plus, Pencil, Trash2, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Plus, Pencil, Trash2, CheckCircle2, ChevronDown, ChevronUp, ArrowUpDown } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { type Goal, type Holding } from '@/db/db'
 import { useFirestoreCollection, putDoc, patchDoc, removeDoc } from '@/db/firestore'
 import { useAuthUser } from '@/lib/AuthContext'
 import { EntityForm } from '@/components/EntityForm'
 import { MoneyInput } from '@/components/MoneyInput'
 import { TextInput } from '@/components/TextInput'
+import { Select } from '@/components/Select'
 import { ProgressBar } from '@/components/ProgressBar'
 import { newId } from '@/lib/id'
 import { paiseToRupees, rupeesToPaise, formatCompactPaise } from '@/lib/money'
@@ -21,6 +22,7 @@ interface DraftGoal {
   targetDate: string
   monthlyAllocationRupees: number
   notes: string
+  trackingType: 'savings' | 'payments' | 'both'
 }
 
 const EMPTY_DRAFT: DraftGoal = {
@@ -31,10 +33,12 @@ const EMPTY_DRAFT: DraftGoal = {
   targetDate: '',
   monthlyAllocationRupees: 0,
   notes: '',
+  trackingType: 'savings',
 }
 
 export function Goals() {
   const user = useAuthUser()
+  const navigate = useNavigate()
   const uid = user?.uid
   const goalsRaw = useFirestoreCollection<Goal>(uid, 'goals')
   const holdings = useFirestoreCollection<Holding>(uid, 'holdings')
@@ -42,6 +46,7 @@ export function Goals() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [draft, setDraft] = useState<DraftGoal>(EMPTY_DRAFT)
   const [linkedHoldingIds, setLinkedHoldingIds] = useState<string[]>([])
+  const [reorderMode, setReorderMode] = useState(false)
 
   if (!uid || !goalsRaw || !holdings) return null
   const goals = [...goalsRaw].sort((a, b) => a.priority - b.priority)
@@ -63,6 +68,7 @@ export function Goals() {
       targetDate: goal.targetDate ?? '',
       monthlyAllocationRupees: paiseToRupees(goal.monthlyAllocationPaise),
       notes: goal.notes,
+      trackingType: goal.trackingType ?? 'savings',
     })
     setLinkedHoldingIds(goal.linkedHoldingIds ?? [])
     setOpen(true)
@@ -79,6 +85,7 @@ export function Goals() {
         targetDate: draft.targetDate || null,
         monthlyAllocationPaise: rupeesToPaise(draft.monthlyAllocationRupees),
         linkedHoldingIds,
+        trackingType: draft.trackingType,
         notes: draft.notes,
         updatedAt: now,
       })
@@ -93,6 +100,7 @@ export function Goals() {
         priority: goals.length,
         monthlyAllocationPaise: rupeesToPaise(draft.monthlyAllocationRupees),
         linkedHoldingIds,
+        trackingType: draft.trackingType,
         notes: draft.notes,
         updatedAt: now,
       })
@@ -118,12 +126,17 @@ export function Goals() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="font-serif text-2xl font-semibold tracking-tight text-ink">Goals</h1>
-        <button
-          onClick={openNew}
-          className="flex items-center gap-1.5 rounded-full bg-accent px-4 py-2.5 text-[13.5px] font-semibold text-cream shadow-[0_2px_8px_rgba(217,119,87,0.35)] hover:opacity-90"
-        >
-          <Plus size={14} strokeWidth={2.5} /> Add Goal
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setReorderMode((mode) => !mode)} className={cn('flex items-center gap-1.5 rounded-full px-3 py-2.5 text-[13px] font-semibold', reorderMode ? 'bg-ink text-cream' : 'bg-ink/6 text-ink/70')}>
+            <ArrowUpDown size={14} /> {reorderMode ? 'Done' : 'Reorder'}
+          </button>
+          <button
+            onClick={openNew}
+            className="flex items-center gap-1.5 rounded-full bg-accent px-4 py-2.5 text-[13.5px] font-semibold text-cream shadow-[0_2px_8px_rgba(217,119,87,0.35)] hover:opacity-90"
+          >
+            <Plus size={14} strokeWidth={2.5} /> Add Goal
+          </button>
+        </div>
       </div>
 
       {goals.length === 0 ? (
@@ -137,9 +150,14 @@ export function Goals() {
             return (
               <li
                 key={goal.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => !reorderMode && navigate(`/goals/${goal.id}`)}
+                onKeyDown={(event) => { if (!reorderMode && (event.key === 'Enter' || event.key === ' ')) navigate(`/goals/${goal.id}`) }}
                 className={cn(
-                  'rounded-[22px] border border-ink/7 bg-surface p-4 shadow-sm shadow-ink/5',
+                  'cursor-pointer rounded-[22px] border border-ink/7 bg-surface p-4 shadow-sm shadow-ink/5 transition-colors hover:border-accent/30',
                   isComplete && 'opacity-70',
+                  reorderMode && 'cursor-default border-ink/15',
                 )}
               >
                 <div className="mb-2.5 flex items-start justify-between gap-2">
@@ -151,37 +169,19 @@ export function Goals() {
                     {goal.category && <div className="mt-px text-xs text-ink/40">{goal.category}</div>}
                   </div>
                   <div className="flex gap-1">
-                    <Link
-                      to={`/goals/${goal.id}`}
-                      className="flex h-[30px] items-center rounded-lg bg-ink/5 px-2 text-[11px] font-semibold text-ink/55 hover:bg-ink/10"
-                    >
-                      Details
-                    </Link>
+                    {reorderMode && <>
+                      <button onClick={(event) => { event.stopPropagation(); moveGoal(index, -1) }} disabled={index === 0} className="flex h-9 items-center gap-1 rounded-lg bg-ink/6 px-2 text-[11px] font-semibold text-ink/60 disabled:opacity-25" aria-label="Move goal up"><ChevronUp size={14} /> Up</button>
+                      <button onClick={(event) => { event.stopPropagation(); moveGoal(index, 1) }} disabled={index === goals.length - 1} className="flex h-9 items-center gap-1 rounded-lg bg-ink/6 px-2 text-[11px] font-semibold text-ink/60 disabled:opacity-25" aria-label="Move goal down"><ChevronDown size={14} /> Down</button>
+                    </>}
                     <button
-                      onClick={() => moveGoal(index, -1)}
-                      disabled={index === 0}
-                      className="flex h-[30px] w-[24px] items-center justify-center rounded-lg bg-ink/5 text-ink/50 hover:bg-ink/10 disabled:opacity-25"
-                      aria-label="Move goal up"
-                    >
-                      <ChevronUp size={14} />
-                    </button>
-                    <button
-                      onClick={() => moveGoal(index, 1)}
-                      disabled={index === goals.length - 1}
-                      className="flex h-[30px] w-[24px] items-center justify-center rounded-lg bg-ink/5 text-ink/50 hover:bg-ink/10 disabled:opacity-25"
-                      aria-label="Move goal down"
-                    >
-                      <ChevronDown size={14} />
-                    </button>
-                    <button
-                      onClick={() => openEdit(goal)}
+                      onClick={(event) => { event.stopPropagation(); openEdit(goal) }}
                       className="flex h-[30px] w-[30px] items-center justify-center rounded-lg bg-ink/5 text-ink/50 hover:bg-ink/10"
                       aria-label="Edit"
                     >
                       <Pencil size={14} />
                     </button>
                     <button
-                      onClick={() => handleDelete(goal.id)}
+                      onClick={(event) => { event.stopPropagation(); handleDelete(goal.id) }}
                       className="flex h-[30px] w-[30px] items-center justify-center rounded-lg bg-accent-strong/9 text-accent-strong hover:bg-accent-strong/15"
                       aria-label="Delete"
                     >
@@ -236,6 +236,16 @@ export function Goals() {
           />
         </div>
         <TextInput label="Notes" value={draft.notes} onChange={(v) => setDraft({ ...draft, notes: v })} />
+        <Select
+          label="Track for this goal"
+          value={draft.trackingType}
+          onChange={(value) => setDraft({ ...draft, trackingType: value as DraftGoal['trackingType'] })}
+          options={[
+            { value: 'savings', label: 'Savings only' },
+            { value: 'payments', label: 'Payments only' },
+            { value: 'both', label: 'Savings and payments' },
+          ]}
+        />
         <div className="space-y-2">
           <div className="text-[13px] font-semibold text-ink/70">Linked portfolio funds <span className="font-normal text-ink/40">(optional)</span></div>
           <p className="text-xs text-ink/45">Selected holdings update this goal’s fund balance automatically.</p>

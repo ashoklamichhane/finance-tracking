@@ -40,6 +40,7 @@ export interface Goal {
   targetDate: string | null
   priority: number
   monthlyAllocationPaise: number
+  trackingType?: 'savings' | 'payments' | 'both'
   // When linked, live holding values become the goal's fund balance.
   linkedHoldingIds?: string[]
   notes: string

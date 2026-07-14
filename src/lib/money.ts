@@ -1,6 +1,6 @@
 // Money is stored as integer paise everywhere to avoid float rounding errors.
 export function rupeesToPaise(rupees: number): number {
-  return Math.round(rupees * 100)
+  return Number.isFinite(rupees) ? Math.round(rupees * 100) : 0
 }
 
 export function paiseToRupees(paise: number): number {
