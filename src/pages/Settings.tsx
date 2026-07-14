@@ -1,9 +1,9 @@
 import { useRef } from 'react'
-import { Settings as SettingsIcon } from 'lucide-react'
 import type { Holding, Goal, Loan, SavingsPlan, Contribution } from '@/db/db'
 import { getCollectionOnce, putDoc } from '@/db/firestore'
 import { useAuthUser } from '@/lib/AuthContext'
 import { signOutUser } from '@/lib/auth'
+import { BackButton } from '@/components/BackButton'
 
 async function exportBackup(uid: string) {
   const data = {
@@ -41,6 +41,8 @@ export function Settings() {
 
   if (!user) return null
 
+  const initial = (user.displayName ?? user.email ?? '?').charAt(0).toUpperCase()
+
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
@@ -50,55 +52,54 @@ export function Settings() {
   }
 
   return (
-    <div className="space-y-6">
-      <h1 className="flex items-center gap-2 text-xl font-bold text-neutral-900 dark:text-neutral-100">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
-          <SettingsIcon size={16} strokeWidth={2.25} />
-        </span>
-        Settings
-      </h1>
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <BackButton />
+        <h1 className="font-serif text-2xl font-semibold tracking-tight text-ink">Settings</h1>
+      </div>
 
-      <section className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-        <h2 className="mb-3 font-semibold text-neutral-800 dark:text-neutral-200">Account</h2>
-        <div className="mb-3 flex items-center gap-3">
-          {user.photoURL && <img src={user.photoURL} alt="" className="h-10 w-10 rounded-full" />}
-          <div className="text-sm">
-            <div className="font-medium text-neutral-800 dark:text-neutral-200">{user.displayName}</div>
-            <div className="text-neutral-400">{user.email}</div>
+      <div className="rounded-[22px] border border-ink/7 bg-surface p-[18px] shadow-sm shadow-ink/5">
+        <div className="mb-3.5 flex items-center gap-3">
+          <span className="flex h-[46px] w-[46px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-accent to-accent-strong text-[17px] font-bold text-cream">
+            {user.photoURL ? <img src={user.photoURL} alt="" className="h-full w-full object-cover" /> : initial}
+          </span>
+          <div>
+            <div className="text-[15px] font-semibold text-ink">{user.displayName}</div>
+            <div className="text-[12.5px] text-ink/40">{user.email}</div>
           </div>
         </div>
-        <p className="mb-3 text-sm text-neutral-400">
+        <p className="mb-3.5 text-[13px] leading-relaxed text-ink/50">
           Your data syncs automatically across every device signed in to this account.
         </p>
         <button
           onClick={() => signOutUser()}
-          className="rounded-lg border border-neutral-300 px-3 py-1.5 text-sm font-medium text-neutral-600 hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+          className="rounded-xl bg-ink/6 px-4 py-2.5 text-[13.5px] font-semibold text-ink/70 hover:bg-ink/10"
         >
-          Sign out
+          Sign Out
         </button>
-      </section>
 
-      <section className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-        <h2 className="mb-1 font-semibold text-neutral-800 dark:text-neutral-200">Backup & restore</h2>
-        <p className="mb-3 text-sm text-neutral-400">
-          A manual point-in-time export/import, independent of the automatic sync above.
+        <div className="my-[18px] -mx-[18px] h-px bg-ink/8" />
+
+        <div className="mb-1 text-[15px] font-semibold text-ink">Backup &amp; Restore</div>
+        <p className="mb-3 text-[13px] leading-relaxed text-ink/50">
+          A manual point-in-time export/import, independent of automatic sync.
         </p>
         <div className="flex gap-2">
           <button
             onClick={() => exportBackup(user.uid)}
-            className="rounded-lg bg-accent px-3 py-1.5 text-sm font-medium text-white hover:opacity-90"
+            className="rounded-xl bg-accent px-4 py-2.5 text-[13.5px] font-semibold text-cream hover:opacity-90"
           >
-            Export backup
+            Export Backup
           </button>
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="rounded-lg border border-neutral-300 px-3 py-1.5 text-sm font-medium text-neutral-600 hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+            className="rounded-xl bg-ink/6 px-4 py-2.5 text-[13.5px] font-semibold text-ink/70 hover:bg-ink/10"
           >
-            Import backup
+            Import Backup
           </button>
           <input ref={fileInputRef} type="file" accept="application/json" hidden onChange={handleFileChange} />
         </div>
-      </section>
+      </div>
     </div>
   )
 }

@@ -45,7 +45,7 @@ function assetClassLabel(ac: AssetClass) {
   return ASSET_CLASSES.find((a) => a.value === ac)?.label ?? ac
 }
 
-interface Slice {
+export interface Slice {
   key: string
   label: string
   valuePaise: number
@@ -53,8 +53,9 @@ interface Slice {
 }
 
 // Past 8 categorical slots the tail folds into "Other" (dataviz skill anti-pattern:
-// never generate/cycle a 9th hue).
-function toDisplaySlices(allocation: AllocationSlice[]): Slice[] {
+// never generate/cycle a 9th hue). Exported so any page rendering its own bar/legend
+// (not just AllocationBar/MiniAllocationBar) still respects the fold and color mapping.
+export function toDisplaySlices(allocation: AllocationSlice[]): Slice[] {
   const ordered = [...allocation].sort(
     (a, b) => SERIES_ORDER.indexOf(a.assetClass) - SERIES_ORDER.indexOf(b.assetClass),
   )
@@ -77,21 +78,67 @@ function toDisplaySlices(allocation: AllocationSlice[]): Slice[] {
   return slices
 }
 
+// Exported so pages that hand-roll their own bar/legend (e.g. Portfolio's total
+// value card) can still resolve the var(--alloc-*) categorical colors.
+export const AllocationPaletteVars = (
+  <style>{`
+    :root {
+      --alloc-equity_in: ${COLORS_LIGHT.equity_in};
+      --alloc-mf: ${COLORS_LIGHT.mf};
+      --alloc-debt: ${COLORS_LIGHT.debt};
+      --alloc-gold: ${COLORS_LIGHT.gold};
+      --alloc-equity_intl: ${COLORS_LIGHT.equity_intl};
+      --alloc-emergency: ${COLORS_LIGHT.emergency};
+      --alloc-etf: ${COLORS_LIGHT.etf};
+      --alloc-arbitrage: ${COLORS_LIGHT.arbitrage};
+      --alloc-other: ${COLORS_LIGHT.other};
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --alloc-equity_in: ${COLORS_DARK.equity_in};
+        --alloc-mf: ${COLORS_DARK.mf};
+        --alloc-debt: ${COLORS_DARK.debt};
+        --alloc-gold: ${COLORS_DARK.gold};
+        --alloc-equity_intl: ${COLORS_DARK.equity_intl};
+        --alloc-emergency: ${COLORS_DARK.emergency};
+        --alloc-etf: ${COLORS_DARK.etf};
+        --alloc-arbitrage: ${COLORS_DARK.arbitrage};
+        --alloc-other: ${COLORS_DARK.other};
+      }
+    }
+  `}</style>
+)
+
+// Bare mode: just the colored bar (no card, header, legend, or hover tooltip) —
+// used inline inside nav cards (e.g. the Home portfolio card) that supply their own chrome.
+export function MiniAllocationBar({ allocation }: { allocation: AllocationSlice[] }) {
+  const slices = toDisplaySlices(allocation)
+  if (slices.length === 0) return null
+  return (
+    <div className="flex h-2 w-full gap-0.5 overflow-hidden rounded-full" role="img" aria-label="Portfolio allocation by asset class">
+      {slices.map((s) => (
+        <div key={s.key} className="h-full" style={{ width: `${s.pct}%`, backgroundColor: `var(--alloc-${s.key})` }} />
+      ))}
+      {AllocationPaletteVars}
+    </div>
+  )
+}
+
 export function AllocationBar({ allocation }: { allocation: AllocationSlice[] }) {
   const [hovered, setHovered] = useState<string | null>(null)
   const slices = toDisplaySlices(allocation)
 
   if (slices.length === 0) {
     return (
-      <div className="rounded-2xl border border-neutral-200 bg-white p-4 text-sm text-neutral-400 dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="rounded-[22px] border border-ink/7 bg-surface p-4 text-sm text-ink/40">
         No holdings yet — add one to see your allocation.
       </div>
     )
   }
 
   return (
-    <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-      <div className="mb-3 text-sm font-medium text-neutral-500 dark:text-neutral-400">
+    <div className="rounded-[22px] border border-ink/7 bg-surface p-4 shadow-sm shadow-ink/5">
+      <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink/50">
         Portfolio allocation
       </div>
 
@@ -113,9 +160,9 @@ export function AllocationBar({ allocation }: { allocation: AllocationSlice[] })
             }}
           >
             {hovered === s.key && (
-              <div className="absolute -top-9 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-md bg-neutral-900 px-2 py-1 text-xs text-white shadow-lg dark:bg-neutral-100 dark:text-neutral-900">
+              <div className="absolute -top-9 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-md bg-ink px-2 py-1 text-xs text-surface shadow-lg">
                 <span className="font-semibold tabular-nums">{formatCompactPaise(s.valuePaise)}</span>{' '}
-                <span className="text-neutral-300 dark:text-neutral-600">{s.label}</span>
+                <span className="text-surface/70">{s.label}</span>
               </div>
             )}
           </div>
@@ -130,38 +177,13 @@ export function AllocationBar({ allocation }: { allocation: AllocationSlice[] })
               style={{ backgroundColor: `var(--alloc-${s.key})` }}
               aria-hidden
             />
-            <span className="truncate text-neutral-600 dark:text-neutral-300">{s.label}</span>
-            <span className="ml-auto tabular-nums text-neutral-400">{s.pct.toFixed(0)}%</span>
+            <span className="truncate text-ink/70">{s.label}</span>
+            <span className="ml-auto tabular-nums text-ink/40">{s.pct.toFixed(0)}%</span>
           </li>
         ))}
       </ul>
 
-      <style>{`
-        :root {
-          --alloc-equity_in: ${COLORS_LIGHT.equity_in};
-          --alloc-mf: ${COLORS_LIGHT.mf};
-          --alloc-debt: ${COLORS_LIGHT.debt};
-          --alloc-gold: ${COLORS_LIGHT.gold};
-          --alloc-equity_intl: ${COLORS_LIGHT.equity_intl};
-          --alloc-emergency: ${COLORS_LIGHT.emergency};
-          --alloc-etf: ${COLORS_LIGHT.etf};
-          --alloc-arbitrage: ${COLORS_LIGHT.arbitrage};
-          --alloc-other: ${COLORS_LIGHT.other};
-        }
-        @media (prefers-color-scheme: dark) {
-          :root {
-            --alloc-equity_in: ${COLORS_DARK.equity_in};
-            --alloc-mf: ${COLORS_DARK.mf};
-            --alloc-debt: ${COLORS_DARK.debt};
-            --alloc-gold: ${COLORS_DARK.gold};
-            --alloc-equity_intl: ${COLORS_DARK.equity_intl};
-            --alloc-emergency: ${COLORS_DARK.emergency};
-            --alloc-etf: ${COLORS_DARK.etf};
-            --alloc-arbitrage: ${COLORS_DARK.arbitrage};
-            --alloc-other: ${COLORS_DARK.other};
-          }
-        }
-      `}</style>
+      {AllocationPaletteVars}
     </div>
   )
 }

@@ -13,11 +13,11 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
-        name: 'Savings & Portfolio',
-        short_name: 'Savings',
+        name: 'Finance',
+        short_name: 'Finance',
         description: 'Personal savings goals, loans, and portfolio tracker',
-        theme_color: '#166534',
-        background_color: '#ffffff',
+        theme_color: '#d97757',
+        background_color: '#f0eee9',
         display: 'standalone',
         start_url: '.',
         scope: '.',

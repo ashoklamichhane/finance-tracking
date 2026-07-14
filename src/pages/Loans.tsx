@@ -1,12 +1,12 @@
 import { useState } from 'react'
-import { Plus, Pencil, Trash2, Landmark, Wallet } from 'lucide-react'
+import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { type Loan } from '@/db/db'
 import { useFirestoreCollection, putDoc, patchDoc, removeDoc } from '@/db/firestore'
 import { useAuthUser } from '@/lib/AuthContext'
 import { EntityForm } from '@/components/EntityForm'
 import { MoneyInput } from '@/components/MoneyInput'
 import { TextInput } from '@/components/TextInput'
-import { StatTile } from '@/components/StatTile'
+import { BackButton } from '@/components/BackButton'
 import { newId } from '@/lib/id'
 import { paiseToRupees, rupeesToPaise, formatPaise, formatCompactPaise } from '@/lib/money'
 import { totalOutstandingLoansPaise, totalEmiPaise } from '@/lib/calc'
@@ -92,65 +92,63 @@ export function Loans() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="flex items-center gap-2 text-xl font-bold text-neutral-900 dark:text-neutral-100">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400">
-            <Landmark size={16} strokeWidth={2.25} />
-          </span>
-          Loans
-        </h1>
+        <div className="flex items-center gap-3">
+          <BackButton />
+          <h1 className="font-serif text-2xl font-semibold tracking-tight text-ink">Loans</h1>
+        </div>
         <button
           onClick={openNew}
-          className="flex items-center gap-1.5 rounded-lg bg-orange-600 px-3 py-1.5 text-sm font-medium text-white hover:opacity-90"
+          className="flex items-center gap-1.5 rounded-full bg-accent-strong px-4 py-2.5 text-[13.5px] font-semibold text-cream shadow-[0_2px_8px_rgba(191,77,67,0.35)] hover:opacity-90"
         >
-          <Plus size={16} /> Add loan
+          <Plus size={14} strokeWidth={2.5} /> Add
         </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <StatTile
-          label="Total outstanding"
-          value={formatCompactPaise(totalOutstandingLoansPaise(loans))}
-          tone={loans.length > 0 ? 'negative' : 'default'}
-          icon={Landmark}
-          tint="orange"
-        />
-        <StatTile label="Total EMI / month" value={formatCompactPaise(totalEmiPaise(loans))} icon={Wallet} tint="neutral" />
+      <div className="grid grid-cols-2 gap-3.5 rounded-[22px] border border-ink/7 bg-surface p-[18px] shadow-sm shadow-ink/5">
+        <div>
+          <div className="text-[11.5px] font-semibold uppercase tracking-wide text-ink/50">Outstanding</div>
+          <div className="mt-1.5 font-serif text-[22px] font-semibold text-accent-strong">
+            {formatCompactPaise(totalOutstandingLoansPaise(loans))}
+          </div>
+        </div>
+        <div className="border-l border-ink/8 pl-3.5">
+          <div className="text-[11.5px] font-semibold uppercase tracking-wide text-ink/50">EMI / month</div>
+          <div className="mt-1.5 font-serif text-[22px] font-semibold text-ink">{formatCompactPaise(totalEmiPaise(loans))}</div>
+        </div>
       </div>
 
       {loans.length === 0 ? (
-        <p className="text-sm text-neutral-400">No loans. Add one if you have debt to track.</p>
+        <p className="py-6 text-center text-sm text-ink/35">No loans. Add one if you have debt to track.</p>
       ) : (
         <ul className="space-y-2">
           {loans.map((loan) => (
             <li
               key={loan.id}
-              className="flex items-center justify-between rounded-2xl border border-neutral-200 bg-white p-3.5 shadow-sm transition-shadow hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900"
+              className="flex items-center justify-between rounded-[18px] border border-ink/7 bg-surface py-[13px] px-[15px] shadow-sm shadow-ink/5"
             >
               <div>
-                <div className="font-medium text-neutral-900 dark:text-neutral-100">{loan.name}</div>
-                <div className="text-xs text-neutral-400">
+                <div className="text-[14.5px] font-semibold text-ink">{loan.name}</div>
+                <div className="mt-px text-[11.5px] text-ink/40">
                   {loan.lender && `${loan.lender} · `}
                   {loan.interestRate}% · EMI {formatPaise(loan.emiAmountPaise)}
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="tabular-nums text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                  {formatPaise(loan.outstandingPaise)}
-                </span>
+              <div className="flex items-center gap-2">
+                <span className="tabular-nums text-sm font-semibold text-ink/80">{formatPaise(loan.outstandingPaise)}</span>
                 <div className="flex gap-1">
                   <button
                     onClick={() => openEdit(loan)}
-                    className="rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600 dark:hover:bg-neutral-800"
+                    className="flex h-7 w-7 items-center justify-center rounded-lg bg-ink/5 text-ink/50 hover:bg-ink/10"
                     aria-label="Edit"
                   >
-                    <Pencil size={15} />
+                    <Pencil size={13} />
                   </button>
                   <button
                     onClick={() => handleDelete(loan.id)}
-                    className="rounded-md p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950"
+                    className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent-strong/9 text-accent-strong hover:bg-accent-strong/15"
                     aria-label="Delete"
                   >
-                    <Trash2 size={15} />
+                    <Trash2 size={13} />
                   </button>
                 </div>
               </div>
@@ -159,12 +157,7 @@ export function Loans() {
         </ul>
       )}
 
-      <EntityForm
-        open={open}
-        onOpenChange={setOpen}
-        title={editingId ? 'Edit loan' : 'Add loan'}
-        onSubmit={handleSubmit}
-      >
+      <EntityForm open={open} onOpenChange={setOpen} title={editingId ? 'Edit Loan' : 'Add Loan'} onSubmit={handleSubmit} submitLabel="Save Loan" accent="accent-strong">
         <TextInput label="Name" value={draft.name} onChange={(v) => setDraft({ ...draft, name: v })} required placeholder="e.g. Home loan" />
         <TextInput label="Lender" value={draft.lender} onChange={(v) => setDraft({ ...draft, lender: v })} />
         <MoneyInput
@@ -179,14 +172,14 @@ export function Loans() {
             valueRupees={draft.emiAmountRupees}
             onChange={(v) => setDraft({ ...draft, emiAmountRupees: v })}
           />
-          <label className="block text-sm">
-            <span className="mb-1 block font-medium text-neutral-700 dark:text-neutral-300">Interest rate (%)</span>
+          <label className="block text-[13px] font-semibold text-ink/70">
+            Interest rate (%)
             <input
               type="number"
               step="0.01"
               value={draft.interestRate}
               onChange={(e) => setDraft({ ...draft, interestRate: Number(e.target.value) })}
-              className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-accent dark:border-neutral-700 dark:bg-neutral-900"
+              className="mt-1.5 block w-full rounded-xl border border-ink/14 bg-white px-3 py-2.5 text-[15px] font-normal text-ink outline-none focus:ring-2 focus:ring-accent"
             />
           </label>
         </div>

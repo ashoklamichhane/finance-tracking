@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+
+<helmet>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { margin: 0; background: #E3E0D8; }
+    * { box-sizing: border-box; }
+    ::-webkit-scrollbar { display: none; }
+    a { color: #D97757; }
+    a:hover { color: #C2603F; }
+  </style>
+</helmet>
+
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px" style="">
+
+<div style="width:100%;height:100%;display:flex;flex-direction:column;position:relative;background:#F0EEE9;font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;-webkit-font-smoothing:antialiased">
+
+  <!-- ══════════════ SCROLLABLE CONTENT ══════════════ -->
+  <div style="flex:1;overflow-y:auto;padding:58px 16px 104px;display:flex;flex-direction:column;gap:16px">
+
+    <!-- ═══════════ HOME ═══════════ -->
+    <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-direction:column;gap:14px">
+
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 2px 4px">
+          <span style="font-family:Georgia,'Times New Roman',serif;font-size:28px;font-weight:600;letter-spacing:-0.4px;color:#191919">Finance</span>
+          <div onClick="{{ goSettings }}" style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#D97757,#BF4D43);display:flex;align-items:center;justify-content:center;color:#FAF9F5;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 2px 6px rgba(191,77,67,0.3)">A</div>
+        </div>
+
+        <div style="border-radius:28px;padding:30px 24px 32px;background:linear-gradient(150deg,#2b2a27 0%,#191917 80%);box-shadow:0 14px 30px rgba(25,25,25,0.22);color:#FAF9F5;position:relative;overflow:hidden">
+          <div style="position:absolute;top:-70px;right:-50px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(217,119,87,0.35),transparent 70%)"></div>
+          <div style="position:relative;font-size:12px;font-weight:650;color:rgba(250,249,245,0.55);text-transform:uppercase;letter-spacing:0.8px">Net Worth</div>
+          <div style="position:relative;margin-top:12px;font-family:Georgia,'Times New Roman',serif;font-size:52px;font-weight:600;letter-spacing:-0.5px">{{ netWorthFormatted }}</div>
+          <div style="position:relative;margin-top:8px;font-size:13px;color:rgba(250,249,245,0.45)">{{ holdingsCount }} holdings &middot; {{ loansCount }} loans</div>
+        </div>
+
+        <!-- Portfolio nav card with mini allocation -->
+        <div onClick="{{ goPortfolio }}" style="background:#FAF9F5;border:1px solid rgba(25,25,25,0.07);border-radius:22px;padding:18px;cursor:pointer;box-shadow:0 1px 3px rgba(25,25,25,0.05)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="width:38px;height:38px;border-radius:12px;background:rgba(106,155,204,0.16);display:flex;align-items:center;justify-content:center">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><rect x="3" y="13" width="4.5" height="8" rx="1.2" fill="#6A9BCC"></rect><rect x="9.75" y="8" width="4.5" height="13" rx="1.2" fill="#6A9BCC"></rect><rect x="16.5" y="3" width="4.5" height="18" rx="1.2" fill="#6A9BCC"></rect></svg>
+              </span>
+              <div>
+                <div style="font-size:13px;font-weight:600;color:rgba(25,25,25,0.5)">Portfolio</div>
+                <div style="font-size:19px;font-weight:700;color:#191919;letter-spacing:-0.3px">{{ portfolioTotalFormatted }}</div>
+              </div>
+            </div>
+            <svg width="9" height="16" viewBox="0 0 8 14"><path d="M1 1l6 6-6 6" stroke="rgba(25,25,25,0.3)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </div>
+          <div style="display:flex;height:8px;border-radius:4px;overflow:hidden;gap:2px">
+            <sc-for list="{{ allocationSlices }}" as="slice" hint-placeholder-count="4">
+              <div style="height:100%;background:{{ slice.color }};width:{{ slice.widthPct }}"></div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div onClick="{{ goLoans }}" style="background:#FAF9F5;border:1px solid rgba(25,25,25,0.07);border-radius:22px;padding:20px 18px;cursor:pointer;box-shadow:0 1px 3px rgba(25,25,25,0.05)">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="width:36px;height:36px;border-radius:11px;background:rgba(191,77,67,0.12);display:flex;align-items:center;justify-content:center">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2.5L2.5 8h19L12 2.5z" fill="#BF4D43"></path><rect x="4.5" y="9" width="2.8" height="9" fill="#BF4D43"></rect><rect x="10.6" y="9" width="2.8" height="9" fill="#BF4D43"></rect><rect x="16.7" y="9" width="2.8" height="9" fill="#BF4D43"></rect><rect x="2.5" y="19" width="19" height="2.2" rx="1.1" fill="#BF4D43"></rect></svg>
+              </span>
+              <svg width="8" height="14" viewBox="0 0 8 14"><path d="M1 1l6 6-6 6" stroke="rgba(25,25,25,0.3)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            </div>
+            <div style="margin-top:12px;font-size:13px;font-weight:600;color:rgba(25,25,25,0.5)">Loans</div>
+            <div style="margin-top:2px;font-size:18px;font-weight:700;color:#BF4D43;letter-spacing:-0.3px">{{ loanTotalFormatted }}</div>
+            <div style="margin-top:2px;font-size:11.5px;color:rgba(25,25,25,0.4)">EMI {{ totalEmiFormatted }}/mo</div>
+          </div>
+          <div onClick="{{ setTabSavings }}" style="background:#FAF9F5;border:1px solid rgba(25,25,25,0.07);border-radius:22px;padding:20px 18px;cursor:pointer;box-shadow:0 1px 3px rgba(25,25,25,0.05)">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="width:36px;height:36px;border-radius:11px;background:rgba(107,143,113,0.15);display:flex;align-items:center;justify-content:center">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><ellipse cx="11" cy="13" rx="8.5" ry="6.6" fill="#6B8F71"></ellipse><rect x="10" y="4.5" width="2.3" height="3.8" rx="1.1" fill="#6B8F71"></rect><circle cx="17.4" cy="14.6" r="1.2" fill="#FAF9F5"></circle></svg>
+              </span>
+              <svg width="8" height="14" viewBox="0 0 8 14"><path d="M1 1l6 6-6 6" stroke="rgba(25,25,25,0.3)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            </div>
+            <div style="margin-top:12px;font-size:13px;font-weight:600;color:rgba(25,25,25,0.5)">Saved this month</div>
+            <div style="margin-top:2px;font-size:18px;font-weight:700;color:#191919;letter-spacing:-0.3px">{{ savedThisMonthFormatted }}</div>
+            <div style="margin-top:6px;height:5px;border-radius:3px;background:rgba(25,25,25,0.08);overflow:hidden">
+              <div style="height:100%;border-radius:3px;background:#6B8F71;width:{{ savedPctLabel }}"></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:#FAF9F5;border:1px solid rgba(25,25,25,0.07);border-radius:22px;padding:18px;box-shadow:0 1px 3px rgba(25,25,25,0.05)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <span style="font-size:12px;font-weight:650;color:rgba(25,25,25,0.5);text-transform:uppercase;letter-spacing:0.5px">Top Goals</span>
+            <span onClick="{{ setTabGoals }}" style="font-size:13px;font-weight:600;color:#D97757;cursor:pointer">View All</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <sc-for list="{{ topGoals }}" as="goal" hint-placeholder-count="3">
+              <div>
+                <div style="display:flex;align-items:baseline;justify-content:space-between;font-size:14px;margin-bottom:6px">
+                  <span style="font-weight:600;color:#191919">{{ goal.name }}</span>
+                  <span style="color:rgba(25,25,25,0.4);font-variant-numeric:tabular-nums;font-size:12.5px">{{ goal.currentFormatted }} / {{ goal.targetFormatted }}</span>
+                </div>
+                <div style="height:6px;border-radius:3px;background:rgba(25,25,25,0.08);overflow:hidden">
+                  <div style="height:100%;border-radius:3px;background:#D97757;width:{{ goal.pctLabel }}"></div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ═══════════ GOALS ═══════════ -->
+    <sc-if value="{{ isGoals }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-family:Georgia,'Times New Roman',serif;font-size:28px;font-weight:600;letter-spacing:-0.4px;color:#191919">Goals</span>
+          <div onClick="{{ openNewGoal }}" style="display:flex;align-items:center;gap:6px;background:#D97757;color:#FAF9F5;font-size:13.5px;font-weight:600;padding:9px 16px;border-radius:100px;cursor:pointer;box-shadow:0 2px 8px rgba(217,119,87,0.35)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#FAF9F5" stroke-width="2.5" stroke-linecap="round"></path></svg>
+            Add Goal
+          </div>
+        </div>
+
+        <sc-if value="{{ goalsEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="text-align:center;padding:40px 20px;color:rgba(25,25,25,0.35);font-size:14px">No goals yet. Add your first one.</div>
+        </sc-if>
+
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ goalItems }}" as="goal" hint-placeholder-count="3">
+            <div style="background:#FAF9F5;border:1px solid rgba(25,25,25,0.07);border-radius:22px;padding:16px;box-shadow:0 1px 3px rgba(25,25,25,0.05);opacity:{{ goal.opacity }}">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:9px">
+                <div>
+                  <div style="display:flex;align-items:center;gap:6px;font-size:15.5px;font-weight:650;color:#191919">
+                    {{ goal.name }}
+                    <sc-if value="{{ goal.isComplete }}" hint-placeholder-val="{{ false }}">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#6B8F71"></circle><path d="M8 12.5l2.5 2.5L16 9" stroke="#FAF9F5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                    </sc-if>
+                  </div>
+                  <div style="font-size:12px;color:rgba(25,25,25,0.4);margin-top:1px">{{ goal.category }}</div>
+                </div>
+                <div style="display:flex;gap:5px">
+                  <div onClick="{{ goal.editHandler }}" style="width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(25,25,25,0.05)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M17 3l4 4L9 19l-5 1 1-5L17 3z" stroke="#91918D" stroke-width="2" stroke-linejoin="round"></path></svg>
+                  </div>
+                  <div onClick="{{ goal.deleteHandler }}" style="width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(191,77,67,0.09)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14" stroke="#BF4D43" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                  </div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:baseline;justify-content:space-between;font-size:13.5px;margin-bottom:6px">
+                <span style="color:rgba(25,25,25,0.5);font-variant-numeric:tabular-nums">{{ goal.currentFormatted }} / {{ goal.targetFormatted }}</span>
+                <span style="color:rgba(25,25,25,0.4);font-variant-numeric:tabular-nums">{{ goal.pctText }}</span>
+              </div>
+              <div style="height:6px;border-radius:3px;background:rgba(25,25,25,0.08);overflow:hidden">
+                <div style="height:100%;border-radius:3px;background:#D97757;width:{{ goal.pctLabel }}"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-top:9px;font-size:11.5px;color:rgba(25,25,25,0.4)">
+                <span>{{ goal.remainingText }}</span>
+                <span>{{ goal.projectedText }}</span>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ═══════════ PORTFOLIO (pushed) ═══════════ -->
+    <sc-if value="{{ isPortfolio }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div onClick="{{ goHome }}" style="width:34px;height:34px;border-radius:50%;background:#FAF9F5;border:1px solid rgba(25,25,25,0.08);display:flex;align-items:center;justify-content:center;cursor:pointer">
+              <svg width="10" height="16" viewBox="0 0 12 20" fill="none"><path d="M10 2L2 10l8 8" stroke="#191919" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            </div>
+            <span style="font-family:Georgia,'Times New Roman',serif;font-size:26px;font-weight:600;letter-spacing:-0.4px;color:#191919">Portfolio</span>
+          </div>
+          <div onClick="{{ openNewHolding }}" style="display:flex;align-items:center;gap:6px;background:#6A9BCC;color:#FAF9F5;font-size:13.5px;font-weight:600;padding:9px 16px;border-radius:100px;cursor:pointer;box-shadow:0 2px 8px rgba(106,155,204,0.35)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#FAF9F5" stroke-width="2.5" stroke-linecap="round"></path></svg>
+            Add
+          </div>
+        </div>
+
+        <div style="background:#FAF9F5;border:1px solid rgba(25,25,25,0.07);border-radius:22px;padding:18px;box-shadow:0 1px 3px rgba(25,25,25,0.05)">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px">
+            <span style="font-size:12px;font-weight:650;color:rgba(25,25,25,0.5);text-transform:uppercase;letter-spacing:0.5px">Total Value</span>
+            <span style="font-family:Georgia,'Times New Roman',serif;font-size:24px;font-weight:600;color:#191919">{{ portfolioTotalFormatted }}</span>
+          </div>
+          <div style="display:flex;height:10px;border-radius:5px;overflow:hidden;gap:2px">
+            <sc-for list="{{ allocationSlices }}" as="slice" hint-placeholder-count="4">
+              <div style="height:100%;background:{{ slice.color }};width:{{ slice.widthPct }}"></div>
+            </sc-for>
+          </div>
+          <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px 14px">
+            <sc-for list="{{ allocationSlices }}" as="slice" hint-placeholder-count="4">
+              <div style="display:flex;align-items:center;gap:6px;font-size:12px">
+                <span style="width:8px;height:8px;border-radius:2px;background:{{ slice.color }};flex-shrink:0"></span>
+                <span style="color:#3d3d3a;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ slice.label }}</span>
+                <span style="color:rgba(25,25,25,0.4);font-variant-numeric:tabular-nums">{{ slice.pctLabel }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <sc-for list="{{ holdingItems }}" as="h" hint-placeholder-count="4">
+            <div style="display:flex;align-items:center;justify-content:space-between;background:#FAF9F5;border:1px solid rgba(25,25,25,0.07);border-radius:18px;padding:13px 15px;box-shadow:0 1px 3px rgba(25,25,25,0.05)">
+              <div>
+                <div style="font-size:14.5px;font-weight:600;color:#191919">{{ h.name }}</div>
+                <div style="font-size:11.5px;color:rgba(25,25,25,0.4);margin-top:1px">{{ h.subtitle }}</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="font-size:14px;font-weight:600;color:#3d3d3a;font-variant-numeric:tabular-nums">{{ h.valueFormatted }}</span>
+                <div style="display:flex;gap:4px">
+                  <div onClick="{{ h.editHandler }}" style="width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(25,25,25,0.05)">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M17 3l4 4L9 19l-5 1 1-5L17 3z" stroke="#91918D" stroke-width="2" stroke-linejoin="round"></path></svg>
+                  </div>
+                  <div onClick="{{ h.deleteHandler }}" style="width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(191,77,67,0.09)">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14" stroke="#BF4D43" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ═══════════ LOANS (pushed) ═══════════ -->
+    <sc-if value="{{ isLoans }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div onClick="{{ goHome }}" style="width:34px;height:34px;border-radius:50%;background:#FAF9F5;border:1px solid rgba(25,25,25,0.08);display:flex;align-items:center;justify-content:center;cursor:pointer">
+              <svg width="10" height="16" viewBox="0 0 12 20" fill="none"><path d="M10 2L2 10l8 8" stroke="#191919" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            </div>
+            <span style="font-family:Georgia,'Times New Roman',serif;font-size:26px;font-weight:600;letter-spacing:-0.4px;color:#191919">Loans</span>
+          </div>
+          <div onClick="{{ openNewLoan }}" style="display:flex;align-items:center;gap:6px;background:#BF4D43;color:#FAF9F5;font-size:13.5px;font-weight:600;padding:9px 16px;border-radius:100px;cursor:pointer;box-shadow:0 2px 8px rgba(191,77,67,0.35)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#FAF9F5" stroke-width="2.5" stroke-linecap="round"></path></svg>
+            Add
+          </div>
+        </div>
+
+        <div style="background:#FAF9F5;border:1px solid rgba(25,25,25,0.07);border-radius:22px;padding:18px;box-shadow:0 1px 3px rgba(25,25,25,0.05);display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div>
+            <div style="font-size:11.5px;font-weight:650;color:rgba(25,25,25,0.5);text-transform:uppercase;letter-spacing:0.4px">Outstanding</div>
+            <div style="margin-top:5px;font-family:Georgia,'Times New Roman',serif;font-size:22px;font-weight:600;color:#BF4D43">{{ loanTotalFormatted }}</div>
+          </div>
+          <div style="border-left:1px solid rgba(25,25,25,0.08);padding-left:14px">
+            <div style="font-size:11.5px;font-weight:650;color:rgba(25,25,25,0.5);text-transform:uppercase;letter-spacing:0.4px">EMI / month</div>
+            <div style="margin-top:5px;font-family:Georgia,'Times New Roman',serif;font-size:22px;font-weight:600;color:#191919">{{ totalEmiFormatted }}</div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <sc-for list="{{ loanItems }}" as="loan" hint-placeholder-count="2">
+            <div style="display:flex;align-items:center;justify-content:space-between;background:#FAF9F5;border:1px solid rgba(25,25,25,0.07);border-radius:18px;padding:13px 15px;box-shadow:0 1px 3px rgba(25,25,25,0.05)">
+              <div>
+                <div style="font-size:14.5px;font-weight:600;color:#191919">{{ loan.name }}</div>
+                <div style="font-size:11.5px;color:rgba(25,25,25,0.4);margin-top:1px">{{ loan.subtitle }}</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="font-size:14px;font-weight:600;color:#3d3d3a;font-variant-numeric:tabular-nums">{{ loan.outstandingFormatted }}</span>
+                <div style="display:flex;gap:4px">
+                  <div onClick="{{ loan.editHandler }}" style="width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(25,25,25,0.05)">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M17 3l4 4L9 19l-5 1 1-5L17 3z" stroke="#91918D" stroke-width="2" stroke-linejoin="round"></path></svg>
+                  </div>
+                  <div onClick="{{ loan.deleteHandler }}" style="width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(191,77,67,0.09)">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14" stroke="#BF4D43" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ═══════════ SAVINGS ═══════════ -->
+    <sc-if value="{{ isSavings }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div onClick="{{ goHome }}" style="width:34px;height:34px;border-radius:50%;background:#FAF9F5;border:1px solid rgba(25,25,25,0.08);display:flex;align-items:center;justify-content:center;cursor:pointer">
+              <svg width="10" height="16" viewBox="0 0 12 20" fill="none"><path d="M10 2L2 10l8 8" stroke="#191919" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            </div>
+            <span style="font-family:Georgia,'Times New Roman',serif;font-size:26px;font-weight:600;letter-spacing:-0.4px;color:#191919">Savings</span>
+          </div>
+          <div onClick="{{ openPlanEditor }}" style="display:flex;align-items:center;gap:5px;background:rgba(25,25,25,0.06);color:#3d3d3a;font-size:13px;font-weight:600;padding:9px 16px;border-radius:100px;cursor:pointer">Edit Plan</div>
+        </div>
+
+        <div style="background:#FAF9F5;border:1px solid rgba(25,25,25,0.07);border-radius:22px;padding:18px;box-shadow:0 1px 3px rgba(25,25,25,0.05)">
+          <div style="display:flex;align-items:baseline;justify-content:space-between">
+            <div>
+              <div style="font-size:11.5px;font-weight:650;color:rgba(25,25,25,0.5);text-transform:uppercase;letter-spacing:0.4px">Saved this month</div>
+              <div style="margin-top:5px;font-family:Georgia,'Times New Roman',serif;font-size:26px;font-weight:600;color:{{ savedColor }}">{{ savedThisMonthFormatted }}</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:11.5px;font-weight:650;color:rgba(25,25,25,0.5);text-transform:uppercase;letter-spacing:0.4px">Target</div>
+              <div style="margin-top:5px;font-size:16px;font-weight:600;color:rgba(25,25,25,0.55)">{{ monthlyTargetFormatted }}</div>
+            </div>
+          </div>
+          <div style="margin-top:12px;height:8px;border-radius:4px;background:rgba(25,25,25,0.08);overflow:hidden">
+            <div style="height:100%;border-radius:4px;background:#6B8F71;width:{{ savedPctLabel }}"></div>
+          </div>
+        </div>
+
+        <sc-if value="{{ hasComparison }}" hint-placeholder-val="{{ true }}">
+          <div style="background:#FAF9F5;border:1px solid rgba(25,25,25,0.07);border-radius:22px;padding:18px;box-shadow:0 1px 3px rgba(25,25,25,0.05)">
+            <div style="font-size:12px;font-weight:650;color:rgba(25,25,25,0.5);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px">Planned vs Actual</div>
+            <div style="display:flex;flex-direction:column;gap:9px">
+              <sc-for list="{{ comparisonItems }}" as="c" hint-placeholder-count="3">
+                <div style="display:flex;align-items:center;justify-content:space-between;font-size:13.5px">
+                  <span style="color:#3d3d3a">{{ c.label }}</span>
+                  <span style="color:rgba(25,25,25,0.4);font-variant-numeric:tabular-nums">{{ c.actualFormatted }} / {{ c.plannedFormatted }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <div style="background:#FAF9F5;border:1px solid rgba(25,25,25,0.07);border-radius:22px;padding:18px;box-shadow:0 1px 3px rgba(25,25,25,0.05)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <span style="font-size:12px;font-weight:650;color:rgba(25,25,25,0.5);text-transform:uppercase;letter-spacing:0.5px">Contribution Log</span>
+            <span onClick="{{ openNewContribution }}" style="display:flex;align-items:center;gap:4px;font-size:13px;font-weight:600;color:#6B8F71;cursor:pointer">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#6B8F71" stroke-width="2.5" stroke-linecap="round"></path></svg>
+              Log
+            </span>
+          </div>
+          <sc-if value="{{ contributionsEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="text-align:center;padding:16px;color:rgba(25,25,25,0.35);font-size:13.5px">No contributions logged yet.</div>
+          </sc-if>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <sc-for list="{{ contributionItems }}" as="c" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:13.5px">
+                <span style="color:rgba(25,25,25,0.5)">{{ c.subtitle }}</span>
+                <div style="display:flex;align-items:center;gap:6px">
+                  <span style="font-weight:600;color:#3d3d3a;font-variant-numeric:tabular-nums">{{ c.amountFormatted }}</span>
+                  <div onClick="{{ c.deleteHandler }}" style="width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(191,77,67,0.09)">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14" stroke="#BF4D43" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ═══════════ SETTINGS (pushed) ═══════════ -->
+    <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div onClick="{{ goHome }}" style="width:34px;height:34px;border-radius:50%;background:#FAF9F5;border:1px solid rgba(25,25,25,0.08);display:flex;align-items:center;justify-content:center;cursor:pointer">
+            <svg width="10" height="16" viewBox="0 0 12 20" fill="none"><path d="M10 2L2 10l8 8" stroke="#191919" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </div>
+          <span style="font-family:Georgia,'Times New Roman',serif;font-size:26px;font-weight:600;letter-spacing:-0.4px;color:#191919">Settings</span>
+        </div>
+
+        <div style="background:#FAF9F5;border:1px solid rgba(25,25,25,0.07);border-radius:22px;padding:18px;box-shadow:0 1px 3px rgba(25,25,25,0.05)">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+            <div style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#D97757,#BF4D43);display:flex;align-items:center;justify-content:center;color:#FAF9F5;font-size:17px;font-weight:700">A</div>
+            <div>
+              <div style="font-size:15px;font-weight:650;color:#191919">Ashok Lamichhane</div>
+              <div style="font-size:12.5px;color:rgba(25,25,25,0.4)"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3e5f4d5651557e59535f5752105d5153">[email&#160;protected]</a></div>
+            </div>
+          </div>
+          <div style="font-size:13px;color:rgba(25,25,25,0.5);line-height:1.45;margin-bottom:14px">Your data syncs automatically across every device signed in to this account.</div>
+          <div onClick="{{ noop }}" style="display:inline-block;background:rgba(25,25,25,0.06);color:#3d3d3a;font-size:13.5px;font-weight:600;padding:9px 16px;border-radius:11px;cursor:pointer">Sign Out</div>
+
+          <div style="height:1px;background:rgba(25,25,25,0.08);margin:18px -18px"></div>
+
+          <div style="font-size:15px;font-weight:650;color:#191919;margin-bottom:4px">Backup &amp; Restore</div>
+          <div style="font-size:13px;color:rgba(25,25,25,0.5);line-height:1.45;margin-bottom:12px">A manual point-in-time export/import, independent of automatic sync.</div>
+          <div style="display:flex;gap:8px">
+            <div onClick="{{ noop }}" style="background:#D97757;color:#FAF9F5;font-size:13.5px;font-weight:600;padding:9px 16px;border-radius:11px;cursor:pointer">Export Backup</div>
+            <div onClick="{{ noop }}" style="background:rgba(25,25,25,0.06);color:#3d3d3a;font-size:13.5px;font-weight:600;padding:9px 16px;border-radius:11px;cursor:pointer">Import Backup</div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+  <!-- ══════════════ FLOATING PILL NAV ══════════════ -->
+  <div style="position:absolute;left:0;right:0;bottom:26px;display:flex;justify-content:center;pointer-events:none">
+    <div style="pointer-events:auto;display:flex;gap:4px;padding:6px;border-radius:100px;background:rgba(250,249,245,0.82);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);border:1px solid rgba(25,25,25,0.08);box-shadow:0 8px 24px rgba(25,25,25,0.14)">
+      <div onClick="{{ goHome }}" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 22px;border-radius:100px;cursor:pointer;background:{{ tabBg.home }}">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M4 11l8-7 8 7" stroke="{{ tabColor.home }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 10v9h12v-9" stroke="{{ tabColor.home }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        <span style="font-size:10.5px;font-weight:650;color:{{ tabColor.home }}">Home</span>
+      </div>
+      <div onClick="{{ setTabGoals }}" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 22px;border-radius:100px;cursor:pointer;background:{{ tabBg.goals }}">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="{{ tabColor.goals }}" stroke-width="2"></circle><circle cx="12" cy="12" r="4.5" stroke="{{ tabColor.goals }}" stroke-width="2"></circle><circle cx="12" cy="12" r="1.2" fill="{{ tabColor.goals }}"></circle></svg>
+        <span style="font-size:10.5px;font-weight:650;color:{{ tabColor.goals }}">Goals</span>
+      </div>
+      <div onClick="{{ setTabSavings }}" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 22px;border-radius:100px;cursor:pointer;background:{{ tabBg.savings }}">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><ellipse cx="11" cy="13" rx="8" ry="6.2" fill="{{ tabColor.savings }}"></ellipse><rect x="10" y="5" width="2.2" height="3.6" rx="1" fill="{{ tabColor.savings }}"></rect><circle cx="17" cy="14.5" r="1.1" fill="#F0EEE9"></circle></svg>
+        <span style="font-size:10.5px;font-weight:650;color:{{ tabColor.savings }}">Savings</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ SHEETS ══════════════ -->
+  <sc-if value="{{ anySheetOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeAllSheets }}" style="position:absolute;inset:0;background:rgba(25,25,25,0.4);z-index:80"></div>
+  </sc-if>
+
+  <!-- Goal sheet -->
+  <sc-if value="{{ goalSheetOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:0;right:0;bottom:0;background:#FAF9F5;border-radius:24px 24px 0 0;padding:18px 18px 28px;z-index:90;box-shadow:0 -8px 30px rgba(25,25,25,0.22);max-height:80%;overflow-y:auto">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <span style="font-family:Georgia,'Times New Roman',serif;font-size:19px;font-weight:600;color:#191919">{{ goalSheetTitle }}</span>
+        <div onClick="{{ closeAllSheets }}" style="width:28px;height:28px;border-radius:50%;background:rgba(25,25,25,0.07);display:flex;align-items:center;justify-content:center;cursor:pointer">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 5l14 14M19 5L5 19" stroke="#91918D" stroke-width="2.4" stroke-linecap="round"></path></svg>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:11px">
+        <label style="font-size:13px;font-weight:600;color:#3d3d3a">Name
+          <input value="{{ draftGoal.name }}" onChange="{{ onGoalNameChange }}" placeholder="e.g. Home down payment" style="display:block;width:100%;margin-top:5px;padding:10px 12px;border-radius:12px;border:1px solid rgba(25,25,25,0.14);font-size:15px;outline:none;box-sizing:border-box;background:#fff">
+        </label>
+        <label style="font-size:13px;font-weight:600;color:#3d3d3a">Category
+          <input value="{{ draftGoal.category }}" onChange="{{ onGoalCategoryChange }}" placeholder="e.g. Housing" style="display:block;width:100%;margin-top:5px;padding:10px 12px;border-radius:12px;border:1px solid rgba(25,25,25,0.14);font-size:15px;outline:none;box-sizing:border-box;background:#fff">
+        </label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <label style="font-size:13px;font-weight:600;color:#3d3d3a">Target (₹)
+            <input type="number" value="{{ draftGoal.targetAmount }}" onChange="{{ onGoalTargetChange }}" style="display:block;width:100%;margin-top:5px;padding:10px 12px;border-radius:12px;border:1px solid rgba(25,25,25,0.14);font-size:15px;outline:none;box-sizing:border-box;background:#fff">
+          </label>
+          <label style="font-size:13px;font-weight:600;color:#3d3d3a">Current (₹)
+            <input type="number" value="{{ draftGoal.currentAmount }}" onChange="{{ onGoalCurrentChange }}" style="display:block;width:100%;margin-top:5px;padding:10px 12px;border-radius:12px;border:1px solid rgba(25,25,25,0.14);font-size:15px;outline:none;box-sizing:border-box;background:#fff">
+          </label>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <label style="font-size:13px;font-weight:600;color:#3d3d3a">Monthly (₹)
+            <input type="number" value="{{ draftGoal.monthlyAllocation }}" onChange="{{ onGoalMonthlyChange }}" style="display:block;width:100%;margin-top:5px;padding:10px 12px;border-radius:12px;border:1px solid rgba(25,25,25,0.14);font-size:15px;outline:none;box-sizing:border-box;background:#fff">
+          </label>
+          <label style="font-size:13px;font-weight:600;color:#3d3d3a">Target Date
+            <input type="date" value="{{ draftGoal.targetDate }}" onChange="{{ onGoalDateChange }}" style="display:block;width:100%;margin-top:5px;padding:9px 12px;border-radius:12px;border:1px solid rgba(25,25,25,0.14);font-size:14px;outline:none;box-sizing:border-box;background:#fff">
+          </label>
+        </div>
+        <div onClick="{{ saveGoal }}" style="margin-top:6px;background:#D97757;color:#FAF9F5;text-align:center;font-size:15px;font-weight:650;padding:13px;border-radius:14px;cursor:pointer">Save Goal</div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- Holding sheet -->
+  <sc-if value="{{ holdingSheetOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:0;right:0;bottom:0;background:#FAF9F5;border-radius:24px 24px 0 0;padding:18px 18px 28px;z-index:90;box-shadow:0 -8px 30px rgba(25,25,25,0.22);max-height:80%;overflow-y:auto">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <span style="font-family:Georgia,'Times New Roman',serif;font-size:19px;font-weight:600;color:#191919">{{ holdingSheetTitle }}</span>
+        <div onClick="{{ closeAllSheets }}" style="width:28px;height:28px;border-radius:50%;background:rgba(25,25,25,0.07);display:flex;align-items:center;justify-content:center;cursor:pointer">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 5l14 14M19 5L5 19" stroke="#91918D" stroke-width="2.4" stroke-linecap="round"></path></svg>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:11px">
+        <label style="font-size:13px;font-weight:600;color:#3d3d3a">Name
+          <input value="{{ draftHolding.name }}" onChange="{{ onHoldingNameChange }}" placeholder="e.g. UTI Nifty 50 Index Fund" style="display:block;width:100%;margin-top:5px;padding:10px 12px;border-radius:12px;border:1px solid rgba(25,25,25,0.14);font-size:15px;outline:none;box-sizing:border-box;background:#fff">
+        </label>
+        <label style="font-size:13px;font-weight:600;color:#3d3d3a">Asset Class
+          <select value="{{ draftHolding.assetClass }}" onChange="{{ onHoldingAssetClassChange }}" style="display:block;width:100%;margin-top:5px;padding:10px 12px;border-radius:12px;border:1px solid rgba(25,25,25,0.14);font-size:15px;outline:none;box-sizing:border-box;background:#fff">
+            <sc-for list="{{ assetClassOptions }}" as="opt" hint-placeholder-count="9">
+              <option value="{{ opt.value }}">{{ opt.label }}</option>
+            </sc-for>
+          </select>
+        </label>
+        <label style="font-size:13px;font-weight:600;color:#3d3d3a">Platform
+          <input value="{{ draftHolding.platform }}" onChange="{{ onHoldingPlatformChange }}" placeholder="e.g. Zerodha, Groww" style="display:block;width:100%;margin-top:5px;padding:10px 12px;border-radius:12px;border:1px solid rgba(25,25,25,0.14);font-size:15px;outline:none;box-sizing:border-box;background:#fff">
+        </label>
+        <label style="font-size:13px;font-weight:600;color:#3d3d3a">Current Value (₹)
+          <input type="number" value="{{ draftHolding.currentValue }}" onChange="{{ onHoldingValueChange }}" style="display:block;width:100%;margin-top:5px;padding:10px 12px;border-radius:12px;border:1px solid rgba(25,25,25,0.14);font-size:15px;outline:none;box-sizing:border-box;background:#fff">
+        </label>
+        <div onClick="{{ saveHolding }}" style="margin-top:6px;background:#6A9BCC;color:#FAF9F5;text-align:center;font-size:15px;font-weight:650;padding:13px;border-radius:14px;cursor:pointer">Save Holding</div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- Loan sheet -->
+  <sc-if value="{{ loanSheetOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:0;right:0;bottom:0;background:#FAF9F5;border-radius:24px 24px 0 0;padding:18px 18px 28px;z-index:90;box-shadow:0 -8px 30px rgba(25,25,25,0.22);max-height:80%;overflow-y:auto">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <span style="font-family:Georgia,'Times New Roman',serif;font-size:19px;font-weight:600;color:#191919">{{ loanSheetTitle }}</span>
+        <div onClick="{{ closeAllSheets }}" style="width:28px;height:28px;border-radius:50%;background:rgba(25,25,25,0.07);display:flex;align-items:center;justify-content:center;cursor:pointer">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 5l14 14M19 5L5 19" stroke="#91918D" stroke-width="2.4" stroke-linecap="round"></path></svg>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:11px">
+        <label style="font-size:13px;font-weight:600;color:#3d3d3a">Name
+          <input value="{{ draftLoan.name }}" onChange="{{ onLoanNameChange }}" placeholder="e.g. Home loan" style="display:block;width:100%;margin-top:5px;padding:10px 12px;border-radius:12px;border:1px solid rgba(25,25,25,0.14);font-size:15px;outline:none;box-sizing:border-box;background:#fff">
+        </label>
+        <label style="font-size:13px;font-weight:600;color:#3d3d3a">Lender
+          <input value="{{ draftLoan.lender }}" onChange="{{ onLoanLenderChange }}" style="display:block;width:100%;margin-top:5px;padding:10px 12px;border-radius:12px;border:1px solid rgba(25,25,25,0.14);font-size:15px;outline:none;box-sizing:border-box;background:#fff">
+        </label>
+        <label style="font-size:13px;font-weight:600;color:#3d3d3a">Outstanding Balance (₹)
+          <input type="number" value="{{ draftLoan.outstanding }}" onChange="{{ onLoanOutstandingChange }}" style="display:block;width:100%;margin-top:5px;padding:10px 12px;border-radius:12px;border:1px solid rgba(25,25,25,0.14);font-size:15px;outline:none;box-sizing:border-box;background:#fff">
+        </label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <label style="font-size:13px;font-weight:600;color:#3d3d3a">EMI Amount (₹)
+            <input type="number" value="{{ draftLoan.emiAmount }}" onChange="{{ onLoanEmiChange }}" style="display:block;width:100%;margin-top:5px;padding:10px 12px;border-radius:12px;border:1px solid rgba(25,25,25,0.14);font-size:15px;outline:none;box-sizing:border-box;background:#fff">
+          </label>
+          <label style="font-size:13px;font-weight:600;color:#3d3d3a">Interest (%)
+            <input type="number" value="{{ draftLoan.interestRate }}" onChange="{{ onLoanInterestChange }}" style="display:block;width:100%;margin-top:5px;padding:10px 12px;border-radius:12px;border:1px solid rgba(25,25,25,0.14);font-size:15px;outline:none;box-sizing:border-box;background:#fff">
+          </label>
+        </div>
+        <div onClick="{{ saveLoan }}" style="margin-top:6px;background:#BF4D43;color:#FAF9F5;text-align:center;font-size:15px;font-weight:650;padding:13px;border-radius:14px;cursor:pointer">Save Loan</div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- Contribution sheet -->
+  <sc-if value="{{ contribSheetOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:0;right:0;bottom:0;background:#FAF9F5;border-radius:24px 24px 0 0;padding:18px 18px 28px;z-index:90;box-shadow:0 -8px 30px rgba(25,25,25,0.22);max-height:80%;overflow-y:auto">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <span style="font-family:Georgia,'Times New Roman',serif;font-size:19px;font-weight:600;color:#191919">Log Contribution</span>
+        <div onClick="{{ closeAllSheets }}" style="width:28px;height:28px;border-radius:50%;background:rgba(25,25,25,0.07);display:flex;align-items:center;justify-content:center;cursor:pointer">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 5l14 14M19 5L5 19" stroke="#91918D" stroke-width="2.4" stroke-linecap="round"></path></svg>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:11px">
+        <label style="font-size:13px;font-weight:600;color:#3d3d3a">Date
+          <input type="date" value="{{ draftContribution.date }}" onChange="{{ onContribDateChange }}" style="display:block;width:100%;margin-top:5px;padding:9px 12px;border-radius:12px;border:1px solid rgba(25,25,25,0.14);font-size:14px;outline:none;box-sizing:border-box;background:#fff">
+        </label>
+        <label style="font-size:13px;font-weight:600;color:#3d3d3a">Amount (₹)
+          <input type="number" value="{{ draftContribution.amount }}" onChange="{{ onContribAmountChange }}" style="display:block;width:100%;margin-top:5px;padding:10px 12px;border-radius:12px;border:1px solid rgba(25,25,25,0.14);font-size:15px;outline:none;box-sizing:border-box;background:#fff">
+        </label>
+        <label style="font-size:13px;font-weight:600;color:#3d3d3a">Asset Class
+          <select value="{{ draftContribution.assetClass }}" onChange="{{ onContribAssetClassChange }}" style="display:block;width:100%;margin-top:5px;padding:10px 12px;border-radius:12px;border:1px solid rgba(25,25,25,0.14);font-size:15px;outline:none;box-sizing:border-box;background:#fff">
+            <sc-for list="{{ assetClassOptions }}" as="opt" hint-placeholder-count="9">
+              <option value="{{ opt.value }}">{{ opt.label }}</option>
+            </sc-for>
+          </select>
+        </label>
+        <label style="font-size:13px;font-weight:600;color:#3d3d3a">Note
+          <input value="{{ draftContribution.note }}" onChange="{{ onContribNoteChange }}" style="display:block;width:100%;margin-top:5px;padding:10px 12px;border-radius:12px;border:1px solid rgba(25,25,25,0.14);font-size:15px;outline:none;box-sizing:border-box;background:#fff">
+        </label>
+        <div onClick="{{ saveContribution }}" style="margin-top:6px;background:#6B8F71;color:#FAF9F5;text-align:center;font-size:15px;font-weight:650;padding:13px;border-radius:14px;cursor:pointer">Save</div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- Plan sheet -->
+  <sc-if value="{{ planSheetOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:0;right:0;bottom:0;background:#FAF9F5;border-radius:24px 24px 0 0;padding:18px 18px 28px;z-index:90;box-shadow:0 -8px 30px rgba(25,25,25,0.22);max-height:85%;overflow-y:auto">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <span style="font-family:Georgia,'Times New Roman',serif;font-size:19px;font-weight:600;color:#191919">Monthly Savings Plan</span>
+        <div onClick="{{ closeAllSheets }}" style="width:28px;height:28px;border-radius:50%;background:rgba(25,25,25,0.07);display:flex;align-items:center;justify-content:center;cursor:pointer">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 5l14 14M19 5L5 19" stroke="#91918D" stroke-width="2.4" stroke-linecap="round"></path></svg>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:11px">
+        <label style="font-size:13px;font-weight:600;color:#3d3d3a">Monthly Total (₹)
+          <input type="number" value="{{ draftPlan.monthlyTotal }}" onChange="{{ onPlanTotalChange }}" style="display:block;width:100%;margin-top:5px;padding:10px 12px;border-radius:12px;border:1px solid rgba(25,25,25,0.14);font-size:15px;outline:none;box-sizing:border-box;background:#fff">
+        </label>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:13px;font-weight:600;color:#3d3d3a">Split by asset class</span>
+          <span style="font-size:12px;color:{{ splitSumColor }};font-variant-numeric:tabular-nums">{{ splitSumLabel }}</span>
+        </div>
+        <sc-for list="{{ draftPlanSplits }}" as="row" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:7px">
+            <select value="{{ row.assetClass }}" onChange="{{ row.onAssetClassChange }}" style="flex:1;padding:9px 10px;border-radius:11px;border:1px solid rgba(25,25,25,0.14);font-size:13.5px;outline:none;background:#fff">
+              <sc-for list="{{ assetClassOptions }}" as="opt" hint-placeholder-count="9">
+                <option value="{{ opt.value }}">{{ opt.label }}</option>
+              </sc-for>
+            </select>
+            <input type="number" value="{{ row.targetPct }}" onChange="{{ row.onPctChange }}" style="width:64px;padding:9px 10px;border-radius:11px;border:1px solid rgba(25,25,25,0.14);font-size:13.5px;outline:none;box-sizing:border-box;background:#fff">
+            <div onClick="{{ row.onRemove }}" style="width:32px;height:32px;flex-shrink:0;border-radius:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(191,77,67,0.09)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14" stroke="#BF4D43" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            </div>
+          </div>
+        </sc-for>
+        <span onClick="{{ addSplitRow }}" style="font-size:13px;font-weight:600;color:#6B8F71;cursor:pointer">+ Add Row</span>
+        <div onClick="{{ savePlan }}" style="margin-top:6px;background:#6B8F71;color:#FAF9F5;text-align:center;font-size:15px;font-weight:650;padding:13px;border-radius:14px;cursor:pointer">Save Plan</div>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+</x-import>
+
+</x-dc>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="text/x-dc" data-dc-script data-props="{&quot;compactNumbers&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Display&quot;},&quot;showProjections&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Display&quot;}}">
+const ASSET_CLASSES = [
+  { value: 'emergency', label: 'Emergency Fund' },
+  { value: 'equity_in', label: 'Indian Equity' },
+  { value: 'equity_intl', label: 'International Equity' },
+  { value: 'debt', label: 'Debt' },
+  { value: 'gold', label: 'Gold' },
+  { value: 'cash', label: 'Cash' },
+  { value: 'mf', label: 'Mutual Fund' },
+  { value: 'etf', label: 'ETF' },
+  { value: 'arbitrage', label: 'Arbitrage Fund' },
+];
+
+const ASSET_COLORS = {
+  equity_in: '#6A9BCC',
+  mf: '#6B8F71',
+  debt: '#D4A27F',
+  gold: '#C4A661',
+  equity_intl: '#8A7FBE',
+  emergency: '#BF4D43',
+  etf: '#C98FA6',
+  arbitrage: '#D97757',
+  cash: '#91918D',
+};
+
+function assetLabel(v) {
+  const f = ASSET_CLASSES.find((a) => a.value === v);
+  return f ? f.label : v;
+}
+
+function fmtCompact(rupees) {
+  const abs = Math.abs(rupees);
+  const sign = rupees < 0 ? '-' : '';
+  if (abs >= 1e7) return `${sign}\u20B9${(abs / 1e7).toFixed(2)}Cr`;
+  if (abs >= 1e5) return `${sign}\u20B9${(abs / 1e5).toFixed(2)}L`;
+  if (abs >= 1e3) return `${sign}\u20B9${(abs / 1e3).toFixed(1)}K`;
+  return `${sign}\u20B9${abs.toFixed(0)}`;
+}
+
+const inrFull = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
+function fmtFull(rupees) {
+  return inrFull.format(rupees);
+}
+
+let uidCounter = 100;
+function newId() {
+  uidCounter += 1;
+  return 'id' + uidCounter;
+}
+
+const EMPTY_GOAL = { name: '', category: '', targetAmount: 0, currentAmount: 0, targetDate: '', monthlyAllocation: 0 };
+const EMPTY_HOLDING = { name: '', assetClass: 'mf', platform: '', currentValue: 0 };
+const EMPTY_LOAN = { name: '', lender: '', outstanding: 0, interestRate: 0, emiAmount: 0 };
+const EMPTY_CONTRIB = { date: new Date().toISOString().slice(0, 10), amount: 0, assetClass: 'mf', note: '' };
+
+class Component extends DCLogic {
+  state = {
+    screen: 'home',
+
+    goals: [
+      { id: 'g1', name: 'Home down payment', category: 'Housing', targetAmount: 2500000, currentAmount: 940000, targetDate: '2027-06-01', monthlyAllocation: 45000 },
+      { id: 'g2', name: 'Emergency fund', category: 'Safety net', targetAmount: 600000, currentAmount: 600000, targetDate: '', monthlyAllocation: 0 },
+      { id: 'g3', name: 'Europe trip', category: 'Travel', targetAmount: 350000, currentAmount: 120000, targetDate: '2027-01-01', monthlyAllocation: 15000 },
+    ],
+    holdings: [
+      { id: 'h1', name: 'Nifty 50 Index Fund', assetClass: 'mf', platform: 'Zerodha', currentValue: 285000 },
+      { id: 'h2', name: 'HDFC Flexicap Fund', assetClass: 'mf', platform: 'Groww', currentValue: 168000 },
+      { id: 'h3', name: 'Sovereign Gold Bond', assetClass: 'gold', platform: 'RBI Retail Direct', currentValue: 92000 },
+      { id: 'h4', name: 'ICICI Pru Debt Fund', assetClass: 'debt', platform: 'Zerodha', currentValue: 145000 },
+      { id: 'h5', name: 'Emergency Fund FD', assetClass: 'emergency', platform: 'HDFC Bank', currentValue: 210000 },
+      { id: 'h6', name: 'Nasdaq 100 ETF', assetClass: 'equity_intl', platform: 'INDmoney', currentValue: 76000 },
+    ],
+    loans: [
+      { id: 'l1', name: 'Home loan', lender: 'HDFC Bank', outstanding: 3200000, interestRate: 8.4, emiAmount: 28500 },
+      { id: 'l2', name: 'Car loan', lender: 'SBI', outstanding: 210000, interestRate: 9.1, emiAmount: 9800 },
+    ],
+    contributions: [
+      { id: 'c1', date: '2026-07-05', amount: 45000, assetClass: 'mf', note: 'SIP' },
+      { id: 'c2', date: '2026-07-05', amount: 5000, assetClass: 'gold', note: '' },
+      { id: 'c3', date: '2026-07-10', amount: 15000, assetClass: 'debt', note: 'Bonus top-up' },
+    ],
+    savingsPlan: {
+      monthlyTotal: 65000,
+      splits: [
+        { assetClass: 'mf', targetPct: 50 },
+        { assetClass: 'debt', targetPct: 25 },
+        { assetClass: 'gold', targetPct: 10 },
+        { assetClass: 'emergency', targetPct: 15 },
+      ],
+    },
+
+    goalSheetOpen: false, editingGoalId: null, draftGoal: { ...EMPTY_GOAL },
+    holdingSheetOpen: false, editingHoldingId: null, draftHolding: { ...EMPTY_HOLDING },
+    loanSheetOpen: false, editingLoanId: null, draftLoan: { ...EMPTY_LOAN },
+    contribSheetOpen: false, draftContribution: { ...EMPTY_CONTRIB },
+    planSheetOpen: false, draftPlan: { monthlyTotal: 0, splits: [] },
+  };
+
+  go(screen) { this.setState({ screen }); }
+
+  // ---------- goals ----------
+  openNewGoal() { this.setState({ goalSheetOpen: true, editingGoalId: null, draftGoal: { ...EMPTY_GOAL } }); }
+  openEditGoal(goal) {
+    this.setState({
+      goalSheetOpen: true, editingGoalId: goal.id,
+      draftGoal: { name: goal.name, category: goal.category, targetAmount: goal.targetAmount, currentAmount: goal.currentAmount, targetDate: goal.targetDate || '', monthlyAllocation: goal.monthlyAllocation },
+    });
+  }
+  setGoalField(field, value) { this.setState((s) => ({ draftGoal: { ...s.draftGoal, [field]: value } })); }
+  saveGoal() {
+    const s = this.state;
+    const d = s.draftGoal;
+    if (!d.name.trim()) return;
+    if (s.editingGoalId) {
+      this.setState({ goals: s.goals.map((g) => (g.id === s.editingGoalId ? { ...g, ...d } : g)), goalSheetOpen: false });
+    } else {
+      this.setState({ goals: [...s.goals, { id: newId(), ...d }], goalSheetOpen: false });
+    }
+  }
+  deleteGoal(id) { this.setState((s) => ({ goals: s.goals.filter((g) => g.id !== id) })); }
+
+  // ---------- holdings ----------
+  openNewHolding() { this.setState({ holdingSheetOpen: true, editingHoldingId: null, draftHolding: { ...EMPTY_HOLDING } }); }
+  openEditHolding(h) {
+    this.setState({ holdingSheetOpen: true, editingHoldingId: h.id, draftHolding: { name: h.name, assetClass: h.assetClass, platform: h.platform, currentValue: h.currentValue } });
+  }
+  setHoldingField(field, value) { this.setState((s) => ({ draftHolding: { ...s.draftHolding, [field]: value } })); }
+  saveHolding() {
+    const s = this.state;
+    const d = s.draftHolding;
+    if (!d.name.trim()) return;
+    if (s.editingHoldingId) {
+      this.setState({ holdings: s.holdings.map((h) => (h.id === s.editingHoldingId ? { ...h, ...d } : h)), holdingSheetOpen: false });
+    } else {
+      this.setState({ holdings: [...s.holdings, { id: newId(), ...d }], holdingSheetOpen: false });
+    }
+  }
+  deleteHolding(id) { this.setState((s) => ({ holdings: s.holdings.filter((h) => h.id !== id) })); }
+
+  // ---------- loans ----------
+  openNewLoan() { this.setState({ loanSheetOpen: true, editingLoanId: null, draftLoan: { ...EMPTY_LOAN } }); }
+  openEditLoan(l) {
+    this.setState({ loanSheetOpen: true, editingLoanId: l.id, draftLoan: { name: l.name, lender: l.lender, outstanding: l.outstanding, interestRate: l.interestRate, emiAmount: l.emiAmount } });
+  }
+  setLoanField(field, value) { this.setState((s) => ({ draftLoan: { ...s.draftLoan, [field]: value } })); }
+  saveLoan() {
+    const s = this.state;
+    const d = s.draftLoan;
+    if (!d.name.trim()) return;
+    if (s.editingLoanId) {
+      this.setState({ loans: s.loans.map((l) => (l.id === s.editingLoanId ? { ...l, ...d } : l)), loanSheetOpen: false });
+    } else {
+      this.setState({ loans: [...s.loans, { id: newId(), ...d }], loanSheetOpen: false });
+    }
+  }
+  deleteLoan(id) { this.setState((s) => ({ loans: s.loans.filter((l) => l.id !== id) })); }
+
+  // ---------- contributions ----------
+  openNewContribution() { this.setState({ contribSheetOpen: true, draftContribution: { ...EMPTY_CONTRIB, date: new Date().toISOString().slice(0, 10) } }); }
+  setContribField(field, value) { this.setState((s) => ({ draftContribution: { ...s.draftContribution, [field]: value } })); }
+  saveContribution() {
+    const s = this.state;
+    const d = s.draftContribution;
+    this.setState({ contributions: [{ id: newId(), ...d, amount: Number(d.amount) || 0 }, ...s.contributions], contribSheetOpen: false });
+  }
+  deleteContribution(id) { this.setState((s) => ({ contributions: s.contributions.filter((c) => c.id !== id) })); }
+
+  // ---------- plan ----------
+  openPlanEditor() {
+    const p = this.state.savingsPlan;
+    this.setState({ planSheetOpen: true, draftPlan: { monthlyTotal: p.monthlyTotal, splits: p.splits.map((r) => ({ ...r })) } });
+  }
+  setPlanField(field, value) { this.setState((s) => ({ draftPlan: { ...s.draftPlan, [field]: value } })); }
+  updateSplitRow(i, patch) {
+    this.setState((s) => ({ draftPlan: { ...s.draftPlan, splits: s.draftPlan.splits.map((r, idx) => (idx === i ? { ...r, ...patch } : r)) } }));
+  }
+  addSplitRow() { this.setState((s) => ({ draftPlan: { ...s.draftPlan, splits: [...s.draftPlan.splits, { assetClass: 'mf', targetPct: 0 }] } })); }
+  removeSplitRow(i) { this.setState((s) => ({ draftPlan: { ...s.draftPlan, splits: s.draftPlan.splits.filter((_, idx) => idx !== i) } })); }
+  savePlan() {
+    const d = this.state.draftPlan;
+    this.setState({ savingsPlan: { monthlyTotal: Number(d.monthlyTotal) || 0, splits: d.splits }, planSheetOpen: false });
+  }
+
+  closeAllSheets() {
+    this.setState({ goalSheetOpen: false, holdingSheetOpen: false, loanSheetOpen: false, contribSheetOpen: false, planSheetOpen: false });
+  }
+
+  renderVals() {
+    const s = this.state;
+    const compact = this.props.compactNumbers ?? true;
+    const showProjections = this.props.showProjections ?? true;
+    const fmtBig = compact ? fmtCompact : fmtFull;
+
+    const isHome = s.screen === 'home';
+    const isGoals = s.screen === 'goals';
+    const isPortfolio = s.screen === 'portfolio';
+    const isLoans = s.screen === 'loans';
+    const isSavings = s.screen === 'savings';
+    const isSettings = s.screen === 'settings';
+
+    const inactive = '#91918D';
+    const tabColor = {
+      home: isHome ? '#D97757' : inactive,
+      goals: isGoals ? '#D97757' : inactive,
+      savings: isSavings ? '#D97757' : inactive,
+    };
+    const activeBg = 'rgba(217,119,87,0.14)';
+    const tabBg = {
+      home: isHome ? activeBg : 'transparent',
+      goals: isGoals ? activeBg : 'transparent',
+      savings: isSavings ? activeBg : 'transparent',
+    };
+
+    const portfolioTotal = s.holdings.reduce((sum, h) => sum + h.currentValue, 0);
+    const loanTotal = s.loans.reduce((sum, l) => sum + l.outstanding, 0);
+    const totalEmi = s.loans.reduce((sum, l) => sum + l.emiAmount, 0);
+    const netWorth = portfolioTotal - loanTotal;
+
+    const monthKey = '2026-07';
+    const monthContribs = s.contributions.filter((c) => c.date.startsWith(monthKey));
+    const savedThisMonth = monthContribs.reduce((sum, c) => sum + c.amount, 0);
+    const monthlyTarget = s.savingsPlan.monthlyTotal;
+    const savedPct = monthlyTarget > 0 ? Math.min(100, (savedThisMonth / monthlyTarget) * 100) : 0;
+
+    const byClass = new Map();
+    for (const h of s.holdings) byClass.set(h.assetClass, (byClass.get(h.assetClass) || 0) + h.currentValue);
+    const allocationSlices = Array.from(byClass.entries())
+      .map(([assetClass, value]) => ({
+        key: assetClass,
+        label: assetLabel(assetClass),
+        color: ASSET_COLORS[assetClass] || '#91918D',
+        pct: portfolioTotal > 0 ? (value / portfolioTotal) * 100 : 0,
+      }))
+      .sort((a, b) => b.pct - a.pct)
+      .map((slice) => ({ ...slice, widthPct: slice.pct.toFixed(2) + '%', pctLabel: slice.pct.toFixed(0) + '%' }));
+
+    const goalProgress = (g) => {
+      const remaining = Math.max(0, g.targetAmount - g.currentAmount);
+      const pct = g.targetAmount > 0 ? Math.min(100, (g.currentAmount / g.targetAmount) * 100) : 0;
+      let projectedText = '';
+      if (showProjections && g.monthlyAllocation > 0 && remaining > 0) {
+        const months = Math.ceil(remaining / g.monthlyAllocation);
+        const d = new Date(2026, 6, 1);
+        d.setMonth(d.getMonth() + months);
+        projectedText = 'Projected: ' + d.toISOString().slice(0, 10);
+      }
+      return { pct, remaining, projectedText };
+    };
+
+    const sortedGoals = [...s.goals];
+    const topGoals = sortedGoals.slice(0, 3).map((g) => {
+      const p = goalProgress(g);
+      return {
+        name: g.name,
+        currentFormatted: fmtBig(g.currentAmount),
+        targetFormatted: fmtBig(g.targetAmount),
+        pctLabel: p.pct.toFixed(0) + '%',
+      };
+    });
+
+    const goalItems = sortedGoals.map((g) => {
+      const p = goalProgress(g);
+      const isComplete = p.pct >= 100;
+      return {
+        id: g.id,
+        name: g.name,
+        category: g.category,
+        currentFormatted: fmtBig(g.currentAmount),
+        targetFormatted: fmtBig(g.targetAmount),
+        pctLabel: p.pct.toFixed(0) + '%',
+        pctText: p.pct.toFixed(0) + '%',
+        isComplete,
+        opacity: isComplete ? '0.72' : '1',
+        remainingText: p.remaining > 0 ? fmtBig(p.remaining) + ' remaining' : 'Target reached',
+        projectedText: p.projectedText,
+        editHandler: () => this.openEditGoal(g),
+        deleteHandler: () => this.deleteGoal(g.id),
+      };
+    });
+
+    const holdingItems = s.holdings.map((h) => ({
+      id: h.id,
+      name: h.name,
+      subtitle: assetLabel(h.assetClass) + (h.platform ? ' \u00B7 ' + h.platform : ''),
+      valueFormatted: fmtFull(h.currentValue),
+      editHandler: () => this.openEditHolding(h),
+      deleteHandler: () => this.deleteHolding(h.id),
+    }));
+
+    const loanItems = s.loans.map((l) => ({
+      id: l.id,
+      name: l.name,
+      subtitle: (l.lender ? l.lender + ' \u00B7 ' : '') + l.interestRate + '% \u00B7 EMI ' + fmtFull(l.emiAmount),
+      outstandingFormatted: fmtFull(l.outstanding),
+      editHandler: () => this.openEditLoan(l),
+      deleteHandler: () => this.deleteLoan(l.id),
+    }));
+
+    const contributionItems = [...s.contributions]
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .map((c) => ({
+        id: c.id,
+        subtitle: c.date + ' \u00B7 ' + assetLabel(c.assetClass) + (c.note ? ' \u00B7 ' + c.note : ''),
+        amountFormatted: fmtFull(c.amount),
+        deleteHandler: () => this.deleteContribution(c.id),
+      }));
+
+    const comparisonItems = s.savingsPlan.splits.map((split) => {
+      const actual = monthContribs.filter((c) => c.assetClass === split.assetClass).reduce((sum, c) => sum + c.amount, 0);
+      const planned = Math.round((monthlyTarget * split.targetPct) / 100);
+      return { assetClass: split.assetClass, label: assetLabel(split.assetClass), actualFormatted: fmtBig(actual), plannedFormatted: fmtBig(planned) };
+    });
+
+    const draftPlanSplits = s.draftPlan.splits.map((row, i) => ({
+      assetClass: row.assetClass,
+      targetPct: row.targetPct,
+      onAssetClassChange: (e) => this.updateSplitRow(i, { assetClass: e.target.value }),
+      onPctChange: (e) => this.updateSplitRow(i, { targetPct: Number(e.target.value) }),
+      onRemove: () => this.removeSplitRow(i),
+    }));
+    const splitSum = s.draftPlan.splits.reduce((sum, r) => sum + Number(r.targetPct || 0), 0);
+
+    return {
+      isHome, isGoals, isPortfolio, isLoans, isSavings, isSettings,
+      tabColor, tabBg,
+      goHome: () => this.go('home'),
+      setTabGoals: () => this.go('goals'),
+      setTabSavings: () => this.go('savings'),
+      goPortfolio: () => this.go('portfolio'),
+      goLoans: () => this.go('loans'),
+      goSettings: () => this.go('settings'),
+
+      netWorthFormatted: fmtBig(netWorth),
+      portfolioTotalFormatted: fmtBig(portfolioTotal),
+      loanTotalFormatted: fmtBig(loanTotal),
+      totalEmiFormatted: fmtBig(totalEmi),
+      savedThisMonthFormatted: fmtBig(savedThisMonth),
+      monthlyTargetFormatted: fmtBig(monthlyTarget),
+      savedPctLabel: savedPct.toFixed(0) + '%',
+      savedColor: monthlyTarget > 0 && savedThisMonth >= monthlyTarget ? '#6B8F71' : '#191919',
+      holdingsCount: s.holdings.length,
+      loansCount: s.loans.length,
+
+      allocationSlices,
+      topGoals,
+      goalsEmpty: s.goals.length === 0,
+      goalItems,
+      holdingItems,
+      loanItems,
+      contributionsEmpty: s.contributions.length === 0,
+      contributionItems,
+      hasComparison: comparisonItems.length > 0,
+      comparisonItems,
+
+      assetClassOptions: ASSET_CLASSES,
+
+      openNewGoal: () => this.openNewGoal(),
+      goalSheetOpen: s.goalSheetOpen,
+      goalSheetTitle: s.editingGoalId ? 'Edit Goal' : 'Add Goal',
+      draftGoal: s.draftGoal,
+      onGoalNameChange: (e) => this.setGoalField('name', e.target.value),
+      onGoalCategoryChange: (e) => this.setGoalField('category', e.target.value),
+      onGoalTargetChange: (e) => this.setGoalField('targetAmount', Number(e.target.value)),
+      onGoalCurrentChange: (e) => this.setGoalField('currentAmount', Number(e.target.value)),
+      onGoalMonthlyChange: (e) => this.setGoalField('monthlyAllocation', Number(e.target.value)),
+      onGoalDateChange: (e) => this.setGoalField('targetDate', e.target.value),
+      saveGoal: () => this.saveGoal(),
+
+      openNewHolding: () => this.openNewHolding(),
+      holdingSheetOpen: s.holdingSheetOpen,
+      holdingSheetTitle: s.editingHoldingId ? 'Edit Holding' : 'Add Holding',
+      draftHolding: s.draftHolding,
+      onHoldingNameChange: (e) => this.setHoldingField('name', e.target.value),
+      onHoldingAssetClassChange: (e) => this.setHoldingField('assetClass', e.target.value),
+      onHoldingPlatformChange: (e) => this.setHoldingField('platform', e.target.value),
+      onHoldingValueChange: (e) => this.setHoldingField('currentValue', Number(e.target.value)),
+      saveHolding: () => this.saveHolding(),
+
+      openNewLoan: () => this.openNewLoan(),
+      loanSheetOpen: s.loanSheetOpen,
+      loanSheetTitle: s.editingLoanId ? 'Edit Loan' : 'Add Loan',
+      draftLoan: s.draftLoan,
+      onLoanNameChange: (e) => this.setLoanField('name', e.target.value),
+      onLoanLenderChange: (e) => this.setLoanField('lender', e.target.value),
+      onLoanOutstandingChange: (e) => this.setLoanField('outstanding', Number(e.target.value)),
+      onLoanEmiChange: (e) => this.setLoanField('emiAmount', Number(e.target.value)),
+      onLoanInterestChange: (e) => this.setLoanField('interestRate', Number(e.target.value)),
+      saveLoan: () => this.saveLoan(),
+
+      openNewContribution: () => this.openNewContribution(),
+      contribSheetOpen: s.contribSheetOpen,
+      draftContribution: s.draftContribution,
+      onContribDateChange: (e) => this.setContribField('date', e.target.value),
+      onContribAmountChange: (e) => this.setContribField('amount', Number(e.target.value)),
+      onContribAssetClassChange: (e) => this.setContribField('assetClass', e.target.value),
+      onContribNoteChange: (e) => this.setContribField('note', e.target.value),
+      saveContribution: () => this.saveContribution(),
+
+      openPlanEditor: () => this.openPlanEditor(),
+      planSheetOpen: s.planSheetOpen,
+      draftPlan: s.draftPlan,
+      draftPlanSplits,
+      splitSumLabel: splitSum + '% allocated',
+      splitSumColor: splitSum === 100 ? 'rgba(25,25,25,0.4)' : '#BF4D43',
+      onPlanTotalChange: (e) => this.setPlanField('monthlyTotal', Number(e.target.value)),
+      addSplitRow: () => this.addSplitRow(),
+      savePlan: () => this.savePlan(),
+
+      anySheetOpen: s.goalSheetOpen || s.holdingSheetOpen || s.loanSheetOpen || s.contribSheetOpen || s.planSheetOpen,
+      closeAllSheets: () => this.closeAllSheets(),
+      noop: () => {},
+    };
+  }
+}
+
+</script>
+</body>
+</html>

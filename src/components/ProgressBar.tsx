@@ -4,20 +4,23 @@ import { cn } from '@/lib/utils'
 interface ProgressBarProps {
   pct: number
   className?: string
+  tone?: 'accent' | 'sage'
 }
 
-export function ProgressBar({ pct, className }: ProgressBarProps) {
+const TONE_FILL = {
+  accent: 'bg-accent',
+  sage: 'bg-sage',
+} as const
+
+export function ProgressBar({ pct, className, tone = 'accent' }: ProgressBarProps) {
   const clamped = Math.min(100, Math.max(0, pct))
   return (
     <Progress.Root
       value={clamped}
-      className={cn(
-        'relative h-2 w-full overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800',
-        className,
-      )}
+      className={cn('relative h-1.5 w-full overflow-hidden rounded-full bg-ink/8', className)}
     >
       <Progress.Indicator
-        className="h-full bg-accent transition-transform duration-300 ease-out"
+        className={cn('h-full transition-transform duration-300 ease-out', TONE_FILL[tone])}
         style={{ transform: `translateX(-${100 - clamped}%)` }}
       />
     </Progress.Root>

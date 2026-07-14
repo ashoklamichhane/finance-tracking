@@ -6,10 +6,27 @@
 
 body {
   margin: 0;
-  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  font-family: -apple-system, 'SF Pro Text', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background: var(--color-app);
 }
 
 @theme {
-  --color-accent: #166534;
-  --color-accent-light: #22c55e;
+  --color-accent: #d97757;
+  --color-accent-strong: #bf4d43;
+  --color-blue: #6a9bcc;
+  --color-sage: #6b8f71;
+  --color-app: #f0eee9;
+  --color-surface: #faf9f5;
+  --color-ink: #191919;
+  --color-cream: #faf9f5;
+  --font-serif: Georgia, 'Times New Roman', serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-app: #171613;
+    --color-surface: #221f1a;
+    --color-ink: #f0eee9;
+  }
 }

@@ -1,6 +1,14 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
 import type { FormEvent, ReactNode } from 'react'
+import { cn } from '@/lib/utils'
+
+const ACCENTS = {
+  accent: 'bg-accent',
+  blue: 'bg-blue',
+  'accent-strong': 'bg-accent-strong',
+  sage: 'bg-sage',
+} as const
 
 interface EntityFormProps {
   open: boolean
@@ -8,10 +16,19 @@ interface EntityFormProps {
   title: string
   onSubmit: () => void
   children: ReactNode
-  footer?: ReactNode
+  submitLabel?: string
+  accent?: keyof typeof ACCENTS
 }
 
-export function EntityForm({ open, onOpenChange, title, onSubmit, children, footer }: EntityFormProps) {
+export function EntityForm({
+  open,
+  onOpenChange,
+  title,
+  onSubmit,
+  children,
+  submitLabel = 'Save',
+  accent = 'accent',
+}: EntityFormProps) {
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
     onSubmit()
@@ -20,32 +37,25 @@ export function EntityForm({ open, onOpenChange, title, onSubmit, children, foot
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40 data-[state=open]:animate-in data-[state=open]:fade-in" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[min(90vw,480px)] -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-5 shadow-2xl dark:bg-neutral-900">
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-ink/40 data-[state=open]:animate-in data-[state=open]:fade-in" />
+        <Dialog.Content className="fixed inset-x-0 bottom-0 z-50 max-h-[85svh] overflow-y-auto rounded-t-3xl bg-surface p-5 pb-[calc(1.75rem+env(safe-area-inset-bottom))] shadow-2xl data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom sm:inset-x-auto sm:left-1/2 sm:bottom-auto sm:top-1/2 sm:w-[min(90vw,480px)] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-3xl sm:pb-5">
           <div className="mb-4 flex items-center justify-between">
-            <Dialog.Title className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-              {title}
-            </Dialog.Title>
-            <Dialog.Close className="rounded-md p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600 dark:hover:bg-neutral-800">
-              <X size={18} />
+            <Dialog.Title className="font-serif text-xl font-semibold text-ink">{title}</Dialog.Title>
+            <Dialog.Close className="flex h-7 w-7 items-center justify-center rounded-full bg-ink/7 text-ink/50 hover:bg-ink/12">
+              <X size={14} />
             </Dialog.Close>
           </div>
           <form onSubmit={handleSubmit} className="space-y-3">
             {children}
-            <div className="flex justify-between gap-2 pt-2">
-              <div>{footer}</div>
-              <div className="flex gap-2">
-                <Dialog.Close className="rounded-lg px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800">
-                  Cancel
-                </Dialog.Close>
-                <button
-                  type="submit"
-                  className="rounded-lg bg-accent px-3 py-2 text-sm font-medium text-white hover:opacity-90"
-                >
-                  Save
-                </button>
-              </div>
-            </div>
+            <button
+              type="submit"
+              className={cn(
+                'mt-2 w-full rounded-2xl py-3.5 text-center text-[15px] font-semibold text-cream hover:opacity-90',
+                ACCENTS[accent],
+              )}
+            >
+              {submitLabel}
+            </button>
           </form>
         </Dialog.Content>
       </Dialog.Portal>

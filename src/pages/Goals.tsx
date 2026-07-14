@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Pencil, Trash2, Target, CheckCircle2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, CheckCircle2 } from 'lucide-react'
 import { type Goal } from '@/db/db'
 import { useFirestoreCollection, putDoc, patchDoc, removeDoc } from '@/db/firestore'
 import { useAuthUser } from '@/lib/AuthContext'
@@ -100,24 +100,19 @@ export function Goals() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="flex items-center gap-2 text-xl font-bold text-neutral-900 dark:text-neutral-100">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-400">
-            <Target size={16} strokeWidth={2.25} />
-          </span>
-          Goals
-        </h1>
+        <h1 className="font-serif text-2xl font-semibold tracking-tight text-ink">Goals</h1>
         <button
           onClick={openNew}
-          className="flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:opacity-90"
+          className="flex items-center gap-1.5 rounded-full bg-accent px-4 py-2.5 text-[13.5px] font-semibold text-cream shadow-[0_2px_8px_rgba(217,119,87,0.35)] hover:opacity-90"
         >
-          <Plus size={16} /> Add goal
+          <Plus size={14} strokeWidth={2.5} /> Add Goal
         </button>
       </div>
 
       {goals.length === 0 ? (
-        <p className="text-sm text-neutral-400">No goals yet. Add your first one.</p>
+        <p className="py-10 text-center text-sm text-ink/35">No goals yet. Add your first one.</p>
       ) : (
-        <ul className="space-y-3">
+        <ul className="space-y-2.5">
           {goals.map((goal) => {
             const { progressPct, projectedDate, remainingPaise } = goalProgress(goal)
             const isComplete = progressPct >= 100
@@ -125,43 +120,43 @@ export function Goals() {
               <li
                 key={goal.id}
                 className={cn(
-                  'rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900',
+                  'rounded-[22px] border border-ink/7 bg-surface p-4 shadow-sm shadow-ink/5',
                   isComplete && 'opacity-70',
                 )}
               >
-                <div className="mb-1 flex items-start justify-between gap-2">
+                <div className="mb-2.5 flex items-start justify-between gap-2">
                   <div>
-                    <div className="flex items-center gap-1.5 font-medium text-neutral-900 dark:text-neutral-100">
+                    <div className="flex items-center gap-1.5 text-[15.5px] font-semibold text-ink">
                       {goal.name}
-                      {isComplete && <CheckCircle2 size={15} className="text-green-500" />}
+                      {isComplete && <CheckCircle2 size={15} className="text-sage" />}
                     </div>
-                    {goal.category && <div className="text-xs text-neutral-400">{goal.category}</div>}
+                    {goal.category && <div className="mt-px text-xs text-ink/40">{goal.category}</div>}
                   </div>
                   <div className="flex gap-1">
                     <button
                       onClick={() => openEdit(goal)}
-                      className="rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600 dark:hover:bg-neutral-800"
+                      className="flex h-[30px] w-[30px] items-center justify-center rounded-lg bg-ink/5 text-ink/50 hover:bg-ink/10"
                       aria-label="Edit"
                     >
-                      <Pencil size={15} />
+                      <Pencil size={14} />
                     </button>
                     <button
                       onClick={() => handleDelete(goal.id)}
-                      className="rounded-md p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950"
+                      className="flex h-[30px] w-[30px] items-center justify-center rounded-lg bg-accent-strong/9 text-accent-strong hover:bg-accent-strong/15"
                       aria-label="Delete"
                     >
-                      <Trash2 size={15} />
+                      <Trash2 size={14} />
                     </button>
                   </div>
                 </div>
-                <div className="mb-1 flex items-baseline justify-between text-sm">
-                  <span className="tabular-nums text-neutral-500">
+                <div className="mb-1.5 flex items-baseline justify-between text-[13.5px]">
+                  <span className="tabular-nums text-ink/50">
                     {formatCompactPaise(goal.currentAmountPaise)} / {formatCompactPaise(goal.targetAmountPaise)}
                   </span>
-                  <span className="tabular-nums text-neutral-400">{progressPct.toFixed(0)}%</span>
+                  <span className="tabular-nums text-ink/40">{progressPct.toFixed(0)}%</span>
                 </div>
                 <ProgressBar pct={progressPct} />
-                <div className="mt-2 flex justify-between text-xs text-neutral-400">
+                <div className="mt-2.5 flex justify-between text-[11.5px] text-ink/40">
                   <span>{remainingPaise > 0 ? `${formatCompactPaise(remainingPaise)} remaining` : 'Target reached'}</span>
                   {projectedDate && <span>Projected: {projectedDate}</span>}
                 </div>
@@ -171,13 +166,8 @@ export function Goals() {
         </ul>
       )}
 
-      <EntityForm
-        open={open}
-        onOpenChange={setOpen}
-        title={editingId ? 'Edit goal' : 'Add goal'}
-        onSubmit={handleSubmit}
-      >
-        <TextInput label="Name" value={draft.name} onChange={(v) => setDraft({ ...draft, name: v })} required />
+      <EntityForm open={open} onOpenChange={setOpen} title={editingId ? 'Edit Goal' : 'Add Goal'} onSubmit={handleSubmit} submitLabel="Save Goal">
+        <TextInput label="Name" value={draft.name} onChange={(v) => setDraft({ ...draft, name: v })} required placeholder="e.g. Home down payment" />
         <TextInput label="Category" value={draft.category} onChange={(v) => setDraft({ ...draft, category: v })} placeholder="e.g. Education, Retirement" />
         <div className="grid grid-cols-2 gap-3">
           <MoneyInput

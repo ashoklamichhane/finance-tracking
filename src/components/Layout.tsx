@@ -1,26 +1,28 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { LayoutDashboard, Target, PieChart, Landmark, PiggyBank, Settings } from 'lucide-react'
+import { Home, Target, PieChart, Landmark, PiggyBank, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-const NAV_ITEMS = [
-  { to: '/', label: 'Overview', icon: LayoutDashboard, end: true, tint: 'text-accent' },
-  { to: '/goals', label: 'Goals', icon: Target, tint: 'text-violet-500 dark:text-violet-400' },
-  { to: '/portfolio', label: 'Portfolio', icon: PieChart, tint: 'text-blue-500 dark:text-blue-400' },
-  { to: '/loans', label: 'Loans', icon: Landmark, tint: 'text-orange-500 dark:text-orange-400' },
-  { to: '/savings', label: 'Savings', icon: PiggyBank, tint: 'text-teal-500 dark:text-teal-400' },
-  { to: '/settings', label: 'Settings', icon: Settings, tint: 'text-neutral-500 dark:text-neutral-400' },
+const TAB_ITEMS = [
+  { to: '/', label: 'Home', icon: Home, end: true },
+  { to: '/goals', label: 'Goals', icon: Target },
+  { to: '/savings', label: 'Savings', icon: PiggyBank },
+]
+
+const DESKTOP_ITEMS = [
+  ...TAB_ITEMS,
+  { to: '/portfolio', label: 'Portfolio', icon: PieChart },
+  { to: '/loans', label: 'Loans', icon: Landmark },
+  { to: '/settings', label: 'Settings', icon: Settings },
 ]
 
 export function Layout() {
   return (
-    <div className="min-h-svh bg-neutral-50 dark:bg-neutral-950">
-      <header className="sticky top-0 z-30 hidden border-b border-neutral-200/80 bg-white/80 backdrop-blur-md sm:block dark:border-neutral-800/80 dark:bg-neutral-950/80">
+    <div className="min-h-svh bg-app">
+      <header className="sticky top-0 z-30 hidden border-b border-ink/7 bg-surface/90 backdrop-blur-md sm:block">
         <div className="mx-auto flex max-w-4xl items-center gap-1 px-4 py-3">
-          <span className="mr-4 text-lg font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
-            Savings
-          </span>
+          <span className="mr-4 font-serif text-lg font-semibold tracking-tight text-ink">Finance</span>
           <nav className="flex gap-1">
-            {NAV_ITEMS.map(({ to, label, icon: Icon, end, tint }) => (
+            {DESKTOP_ITEMS.map(({ to, label, icon: Icon, end }) => (
               <NavLink
                 key={to}
                 to={to}
@@ -28,9 +30,7 @@ export function Layout() {
                 className={({ isActive }) =>
                   cn(
                     'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
-                    isActive
-                      ? cn('bg-neutral-100 dark:bg-neutral-900', tint)
-                      : 'text-neutral-500 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-900',
+                    isActive ? 'bg-accent/12 text-accent' : 'text-ink/50 hover:bg-ink/6',
                   )
                 }
               >
@@ -42,35 +42,27 @@ export function Layout() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl px-4 pb-28 pt-5 sm:pb-10">
+      <main className="mx-auto max-w-4xl px-4 pb-32 pt-5 sm:pb-10">
         <Outlet />
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t border-neutral-200/80 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md sm:hidden dark:border-neutral-800/80 dark:bg-neutral-950/95">
-        {NAV_ITEMS.map(({ to, label, icon: Icon, end, tint }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={end}
-            className="flex flex-col items-center justify-center gap-1 py-2.5"
-          >
-            {({ isActive }) => (
-              <>
-                <span
-                  className={cn(
-                    'flex h-9 w-9 items-center justify-center rounded-xl transition-colors',
-                    isActive ? cn('bg-neutral-100 dark:bg-neutral-900', tint) : 'text-neutral-400',
-                  )}
-                >
-                  <Icon size={24} strokeWidth={isActive ? 2.25 : 2} />
-                </span>
-                <span className={cn('text-[11px] font-medium', isActive ? tint : 'text-neutral-400')}>
-                  {label}
-                </span>
-              </>
-            )}
-          </NavLink>
-        ))}
+      <nav className="fixed inset-x-0 bottom-0 z-30 flex justify-center pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:hidden">
+        <div className="flex gap-1 rounded-full border border-ink/8 bg-surface/85 p-1.5 shadow-lg shadow-ink/15 backdrop-blur-xl">
+          {TAB_ITEMS.map(({ to, label, icon: Icon, end }) => (
+            <NavLink key={to} to={to} end={end} className="flex flex-col items-center gap-0.5 rounded-full px-5 py-2">
+              {({ isActive }) => (
+                <>
+                  <span className={cn('flex h-6 w-6 items-center justify-center rounded-full', isActive && 'bg-accent/14')}>
+                    <Icon size={22} className={isActive ? 'text-accent' : 'text-ink/40'} strokeWidth={isActive ? 2.25 : 2} />
+                  </span>
+                  <span className={cn('text-[10.5px] font-semibold', isActive ? 'text-accent' : 'text-ink/40')}>
+                    {label}
+                  </span>
+                </>
+              )}
+            </NavLink>
+          ))}
+        </div>
       </nav>
     </div>
   )

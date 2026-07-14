@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Pencil, Trash2, PieChart as PieChartIcon } from 'lucide-react'
+import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { type Holding, ASSET_CLASSES, type AssetClass } from '@/db/db'
 import { useFirestoreCollection, putDoc, patchDoc, removeDoc } from '@/db/firestore'
 import { useAuthUser } from '@/lib/AuthContext'
@@ -7,11 +7,11 @@ import { EntityForm } from '@/components/EntityForm'
 import { MoneyInput } from '@/components/MoneyInput'
 import { TextInput } from '@/components/TextInput'
 import { Select } from '@/components/Select'
-import { AllocationBar } from '@/components/AllocationBar'
+import { BackButton } from '@/components/BackButton'
+import { AllocationPaletteVars, toDisplaySlices } from '@/components/AllocationBar'
 import { newId } from '@/lib/id'
 import { paiseToRupees, rupeesToPaise, formatPaise } from '@/lib/money'
 import { allocationByAssetClass, totalPortfolioPaise } from '@/lib/calc'
-import { StatTile } from '@/components/StatTile'
 import { formatCompactPaise } from '@/lib/money'
 
 interface DraftHolding {
@@ -91,63 +91,91 @@ export function Portfolio() {
 
   if (!uid || !holdings) return null
 
-  const allocation = allocationByAssetClass(holdings)
+  const allocation = toDisplaySlices(allocationByAssetClass(holdings))
   const total = totalPortfolioPaise(holdings)
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="flex items-center gap-2 text-xl font-bold text-neutral-900 dark:text-neutral-100">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
-            <PieChartIcon size={16} strokeWidth={2.25} />
-          </span>
-          Portfolio
-        </h1>
+        <div className="flex items-center gap-3">
+          <BackButton />
+          <h1 className="font-serif text-2xl font-semibold tracking-tight text-ink">Portfolio</h1>
+        </div>
         <button
           onClick={openNew}
-          className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:opacity-90"
+          className="flex items-center gap-1.5 rounded-full bg-blue px-4 py-2.5 text-[13.5px] font-semibold text-cream shadow-[0_2px_8px_rgba(106,155,204,0.35)] hover:opacity-90"
         >
-          <Plus size={16} /> Add holding
+          <Plus size={14} strokeWidth={2.5} /> Add
         </button>
       </div>
 
-      <StatTile label="Total portfolio value" value={formatCompactPaise(total)} icon={PieChartIcon} tint="blue" />
-      <AllocationBar allocation={allocation} />
+      <div className="rounded-[22px] border border-ink/7 bg-surface p-[18px] shadow-sm shadow-ink/5">
+        <div className="mb-3.5 flex items-baseline justify-between">
+          <span className="text-xs font-semibold uppercase tracking-wide text-ink/50">Total Value</span>
+          <span className="font-serif text-2xl font-semibold text-ink">{formatCompactPaise(total)}</span>
+        </div>
+        <div className="flex h-2.5 gap-0.5 overflow-hidden rounded-full">
+          {allocation.length === 0 ? (
+            <div className="h-full w-full bg-ink/8" />
+          ) : (
+            allocation.map((slice) => (
+              <div
+                key={slice.key}
+                className="h-full"
+                style={{ width: `${slice.pct}%`, backgroundColor: `var(--alloc-${slice.key})` }}
+              />
+            ))
+          )}
+        </div>
+        {allocation.length > 0 && (
+          <div className="mt-3 grid grid-cols-2 gap-x-3.5 gap-y-2">
+            {allocation.map((slice) => (
+              <div key={slice.key} className="flex items-center gap-1.5 text-xs">
+                <span
+                  className="h-2 w-2 shrink-0 rounded-sm"
+                  style={{ backgroundColor: `var(--alloc-${slice.key})` }}
+                />
+                <span className="flex-1 truncate text-ink/75">{slice.label}</span>
+                <span className="tabular-nums text-ink/40">{slice.pct.toFixed(0)}%</span>
+              </div>
+            ))}
+          </div>
+        )}
+        {AllocationPaletteVars}
+      </div>
 
       {holdings.length === 0 ? (
-        <p className="text-sm text-neutral-400">No holdings yet. Add your first one.</p>
+        <p className="py-6 text-center text-sm text-ink/35">No holdings yet. Add your first one.</p>
       ) : (
         <ul className="space-y-2">
           {holdings.map((h) => (
             <li
               key={h.id}
-              className="flex items-center justify-between rounded-2xl border border-neutral-200 bg-white p-3.5 shadow-sm transition-shadow hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900"
+              className="flex items-center justify-between rounded-[18px] border border-ink/7 bg-surface py-[13px] px-[15px] shadow-sm shadow-ink/5"
             >
               <div>
-                <div className="font-medium text-neutral-900 dark:text-neutral-100">{h.name}</div>
-                <div className="text-xs text-neutral-400">
+                <div className="text-[14.5px] font-semibold text-ink">{h.name}</div>
+                <div className="mt-px text-[11.5px] text-ink/40">
                   {assetClassLabel(h.assetClass)}
                   {h.platform && ` · ${h.platform}`}
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="tabular-nums text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                  {formatPaise(h.currentValuePaise)}
-                </span>
+              <div className="flex items-center gap-2">
+                <span className="tabular-nums text-sm font-semibold text-ink/80">{formatPaise(h.currentValuePaise)}</span>
                 <div className="flex gap-1">
                   <button
                     onClick={() => openEdit(h)}
-                    className="rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600 dark:hover:bg-neutral-800"
+                    className="flex h-7 w-7 items-center justify-center rounded-lg bg-ink/5 text-ink/50 hover:bg-ink/10"
                     aria-label="Edit"
                   >
-                    <Pencil size={15} />
+                    <Pencil size={13} />
                   </button>
                   <button
                     onClick={() => handleDelete(h.id)}
-                    className="rounded-md p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950"
+                    className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent-strong/9 text-accent-strong hover:bg-accent-strong/15"
                     aria-label="Delete"
                   >
-                    <Trash2 size={15} />
+                    <Trash2 size={13} />
                   </button>
                 </div>
               </div>
@@ -156,12 +184,7 @@ export function Portfolio() {
         </ul>
       )}
 
-      <EntityForm
-        open={open}
-        onOpenChange={setOpen}
-        title={editingId ? 'Edit holding' : 'Add holding'}
-        onSubmit={handleSubmit}
-      >
+      <EntityForm open={open} onOpenChange={setOpen} title={editingId ? 'Edit Holding' : 'Add Holding'} onSubmit={handleSubmit} submitLabel="Save Holding" accent="blue">
         <TextInput label="Name" value={draft.name} onChange={(v) => setDraft({ ...draft, name: v })} required placeholder="e.g. UTI Nifty 50 Index Fund" />
         <Select
           label="Asset class"
