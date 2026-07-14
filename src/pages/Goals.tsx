@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react'
-import { Plus, Pencil, Trash2, CheckCircle2, ArrowUpDown, GripVertical } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Plus, Pencil, Trash2, CheckCircle2, ChevronDown, ArrowUpDown, GripVertical } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { type Goal, type Holding } from '@/db/db'
 import { useFirestoreCollection, putDoc, patchDoc, removeDoc } from '@/db/firestore'
@@ -11,7 +11,7 @@ import { Select } from '@/components/Select'
 import { ProgressBar } from '@/components/ProgressBar'
 import { newId } from '@/lib/id'
 import { paiseToRupees, rupeesToPaise, formatCompactPaise } from '@/lib/money'
-import { goalProgress, linkedFundPaise } from '@/lib/calc'
+import { goalProgress, linkedFundPaise, shouldArchive } from '@/lib/calc'
 import { cn } from '@/lib/utils'
 
 interface DraftGoal {
@@ -49,13 +49,36 @@ export function Goals() {
   const [reorderMode, setReorderMode] = useState(false)
   const [reorderIds, setReorderIds] = useState<string[]>([])
   const [draggingId, setDraggingId] = useState<string | null>(null)
+  const [showCompleted, setShowCompleted] = useState(false)
   const reorderIdsRef = useRef<string[]>([])
 
+  // Mark a goal completed the first time it hits 100% (or un-mark it if it
+  // dips back below), then archive it once the calendar year after
+  // completion turns over.
+  useEffect(() => {
+    if (!goalsRaw || !holdings) return
+    for (const goal of goalsRaw) {
+      if (goal.archivedAt) continue
+      const fundedPaise = linkedFundPaise(goal, holdings)
+      const isComplete = goalProgress({ ...goal, currentAmountPaise: fundedPaise }).progressPct >= 100
+      if (isComplete && !goal.completedAt) {
+        patchDoc(uid!, 'goals', goal.id, { completedAt: Date.now() })
+      } else if (!isComplete && goal.completedAt) {
+        patchDoc(uid!, 'goals', goal.id, { completedAt: null })
+      } else if (goal.completedAt && shouldArchive(goal.completedAt)) {
+        patchDoc(uid!, 'goals', goal.id, { archivedAt: Date.now() })
+      }
+    }
+  }, [goalsRaw, holdings, uid])
+
   if (!goalsRaw || !holdings) return null
-  const goals = [...goalsRaw].sort((a, b) => a.priority - b.priority)
-  const orderedGoals = reorderMode && reorderIds.length === goals.length
-    ? reorderIds.map((id) => goals.find((goal) => goal.id === id)).filter((goal): goal is Goal => Boolean(goal))
-    : goals
+  const activeGoals = goalsRaw.filter((goal) => !goal.archivedAt).sort((a, b) => a.priority - b.priority)
+  const completedGoals = goalsRaw
+    .filter((goal) => goal.archivedAt)
+    .sort((a, b) => (b.archivedAt ?? 0) - (a.archivedAt ?? 0))
+  const orderedGoals = reorderMode && reorderIds.length === activeGoals.length
+    ? reorderIds.map((id) => activeGoals.find((goal) => goal.id === id)).filter((goal): goal is Goal => Boolean(goal))
+    : activeGoals
 
   function openNew() {
     setEditingId(null)
@@ -103,7 +126,7 @@ export function Goals() {
         targetAmountPaise: rupeesToPaise(draft.targetAmountRupees),
         currentAmountPaise: rupeesToPaise(draft.currentAmountRupees),
         targetDate: draft.targetDate || null,
-        priority: goals.length,
+        priority: activeGoals.length,
         monthlyAllocationPaise: rupeesToPaise(draft.monthlyAllocationRupees),
         linkedHoldingIds,
         trackingType: draft.trackingType,
@@ -129,7 +152,7 @@ export function Goals() {
       setReorderMode(false)
       return
     }
-    const ids = goals.map((goal) => goal.id)
+    const ids = activeGoals.map((goal) => goal.id)
     reorderIdsRef.current = ids
     setReorderIds(ids)
     setReorderMode(true)
@@ -187,8 +210,10 @@ export function Goals() {
         </div>
       </div>
 
-      {goals.length === 0 ? (
-        <p className="py-10 text-center text-sm text-ink/35">No goals yet. Add your first one.</p>
+      {activeGoals.length === 0 ? (
+        <p className="py-10 text-center text-sm text-ink/35">
+          {completedGoals.length > 0 ? 'No active goals. Add a new one or check Completed below.' : 'No goals yet. Add your first one.'}
+        </p>
       ) : (
         <ul className="space-y-2.5">
           {orderedGoals.map((goal) => {
@@ -256,6 +281,71 @@ export function Goals() {
             )
           })}
         </ul>
+      )}
+
+      {completedGoals.length > 0 && (
+        <div>
+          <button
+            onClick={() => setShowCompleted((v) => !v)}
+            className="flex w-full items-center justify-between rounded-xl px-1 py-2 text-[13.5px] font-semibold text-ink/50 hover:text-ink/70"
+          >
+            <span>Completed ({completedGoals.length})</span>
+            <ChevronDown size={16} className={cn('transition-transform', showCompleted && 'rotate-180')} />
+          </button>
+          {showCompleted && (
+            <ul className="space-y-2.5">
+              {completedGoals.map((goal) => {
+                const fundedPaise = linkedFundPaise(goal, holdings)
+                const { progressPct } = goalProgress({ ...goal, currentAmountPaise: fundedPaise })
+                return (
+                  <li
+                    key={goal.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => navigate(`/goals/${goal.id}`)}
+                    onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') navigate(`/goals/${goal.id}`) }}
+                    className="cursor-pointer rounded-[22px] border border-ink/7 bg-surface p-4 opacity-70 shadow-sm shadow-ink/5 transition-colors hover:border-accent/30"
+                  >
+                    <div className="mb-2.5 flex items-start justify-between gap-2">
+                      <div>
+                        <div className="flex items-center gap-1.5 text-[15.5px] font-semibold text-ink">
+                          {goal.name}
+                          <CheckCircle2 size={15} className="text-sage" />
+                        </div>
+                        {goal.category && <div className="mt-px text-xs text-ink/40">{goal.category}</div>}
+                      </div>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={(event) => { event.stopPropagation(); openEdit(goal) }}
+                          className="flex h-[30px] w-[30px] items-center justify-center rounded-lg bg-ink/5 text-ink/50 hover:bg-ink/10"
+                          aria-label="Edit"
+                        >
+                          <Pencil size={14} />
+                        </button>
+                        <button
+                          onClick={(event) => { event.stopPropagation(); handleDelete(goal.id) }}
+                          className="flex h-[30px] w-[30px] items-center justify-center rounded-lg bg-accent-strong/9 text-accent-strong hover:bg-accent-strong/15"
+                          aria-label="Delete"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="mb-1.5 flex items-baseline justify-between text-[13.5px]">
+                      <span className="tabular-nums text-ink/50">
+                        {formatCompactPaise(fundedPaise)} / {formatCompactPaise(goal.targetAmountPaise)}
+                      </span>
+                      <span className="tabular-nums text-ink/40">{progressPct.toFixed(0)}%</span>
+                    </div>
+                    <div className="mt-2.5 text-[11.5px] text-ink/40">
+                      {goal.archivedAt && `Archived ${new Date(goal.archivedAt).toISOString().slice(0, 10)}`}
+                    </div>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </div>
       )}
 
       <EntityForm open={open} onOpenChange={setOpen} title={editingId ? 'Edit Goal' : 'Add Goal'} onSubmit={handleSubmit} submitLabel="Save Goal">

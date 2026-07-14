@@ -68,6 +68,13 @@ export function goalProgress(goal: Goal): GoalProgress {
   return { goal, progressPct, remainingPaise, projectedMonthsToTarget, projectedDate }
 }
 
+// A completed goal is archived once the calendar year after it was
+// completed has turned over, e.g. completed any time in 2026 archives on
+// or after 2027-01-01.
+export function shouldArchive(completedAt: number, now = new Date()): boolean {
+  return now.getFullYear() > new Date(completedAt).getFullYear()
+}
+
 export function linkedFundPaise(goal: Goal, holdings: Holding[]): number {
   if (!goal.linkedHoldingIds?.length) return goal.currentAmountPaise
   const linked = new Set(goal.linkedHoldingIds)

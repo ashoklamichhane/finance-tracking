@@ -45,6 +45,12 @@ export interface Goal {
   linkedHoldingIds?: string[]
   notes: string
   updatedAt: number
+  // Set the first time progress reaches 100%; cleared if it dips back down
+  // before the goal is archived.
+  completedAt?: number | null
+  // Set once the calendar year after completedAt turns over — goals move
+  // to the Completed section and are excluded from active views.
+  archivedAt?: number | null
 }
 
 export interface Loan {

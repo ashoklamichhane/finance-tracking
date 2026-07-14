@@ -38,7 +38,8 @@ export function Overview() {
   const savedThisMonth = totalContributedPaise(monthContributions)
   const monthlyTarget = plan?.monthlyTotalPaise ?? 0
   const savedPct = monthlyTarget > 0 ? Math.min(100, (savedThisMonth / monthlyTarget) * 100) : 0
-  const topGoals = [...goals]
+  const topGoals = goals
+    .filter((goal) => !goal.archivedAt)
     .sort((a, b) => a.priority - b.priority)
     .slice(0, 3)
     .map((goal) => goalProgress({ ...goal, currentAmountPaise: linkedFundPaise(goal, holdings) }))
