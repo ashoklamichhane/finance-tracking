@@ -13,6 +13,8 @@ import {
   type Query,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
+import { useDemoMode, isDemoModeEnabled } from '@/lib/DemoContext'
+import { demoCollection, demoDoc } from '@/lib/demoData'
 
 export type CollectionName = 'holdings' | 'goals' | 'loans' | 'savingsPlan' | 'contributions' | 'goalPayments'
 
@@ -21,6 +23,7 @@ function userCollection(uid: string, name: CollectionName) {
 }
 
 export async function putDoc<T extends { id: string }>(uid: string, name: CollectionName, item: T): Promise<void> {
+  if (isDemoModeEnabled()) return
   await setDoc(doc(db, 'users', uid, name, item.id), item)
 }
 
@@ -30,10 +33,12 @@ export async function patchDoc(
   id: string,
   patch: Record<string, unknown>,
 ): Promise<void> {
+  if (isDemoModeEnabled()) return
   await fsUpdateDoc(doc(db, 'users', uid, name, id), patch)
 }
 
 export async function removeDoc(uid: string, name: CollectionName, id: string): Promise<void> {
+  if (isDemoModeEnabled()) return
   await fsDeleteDoc(doc(db, 'users', uid, name, id))
 }
 
@@ -45,8 +50,13 @@ export function useFirestoreCollection<T>(
   orderByField?: string,
 ): T[] | undefined {
   const [data, setData] = useState<T[] | undefined>(undefined)
+  const { enabled: demoEnabled } = useDemoMode()
 
   useEffect(() => {
+    if (demoEnabled) {
+      setData(demoCollection(name) as T[])
+      return
+    }
     if (!uid) {
       setData(undefined)
       return
@@ -57,7 +67,7 @@ export function useFirestoreCollection<T>(
       setData(snapshot.docs.map((d) => d.data() as T))
     })
     return unsubscribe
-  }, [uid, name, orderByField])
+  }, [uid, name, orderByField, demoEnabled])
 
   return data
 }
@@ -65,8 +75,13 @@ export function useFirestoreCollection<T>(
 // Reactive single-document query, for the one-record savingsPlan doc (id: 'main').
 export function useFirestoreDoc<T>(uid: string | null | undefined, name: CollectionName, id: string): T | undefined {
   const [data, setData] = useState<T | undefined>(undefined)
+  const { enabled: demoEnabled } = useDemoMode()
 
   useEffect(() => {
+    if (demoEnabled) {
+      setData(demoDoc(name, id) as T | undefined)
+      return
+    }
     if (!uid) {
       setData(undefined)
       return
@@ -76,7 +91,7 @@ export function useFirestoreDoc<T>(uid: string | null | undefined, name: Collect
       setData(snap.exists() ? (snap.data() as T) : undefined)
     })
     return unsubscribe
-  }, [uid, name, id])
+  }, [uid, name, id, demoEnabled])
 
   return data
 }

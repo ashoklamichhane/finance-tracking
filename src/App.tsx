@@ -10,11 +10,13 @@ import { Savings } from '@/pages/Savings'
 import { Settings } from '@/pages/Settings'
 import { GoalDetail } from '@/pages/GoalDetail'
 import { NetWorth } from '@/pages/NetWorth'
+import { DemoProvider } from '@/lib/DemoContext'
 
 function App() {
   return (
     <AuthProvider>
       <SignInGate>
+        <DemoProvider>
         <BrowserRouter>
           <Routes>
             <Route element={<Layout />}>
@@ -29,6 +31,7 @@ function App() {
             </Route>
           </Routes>
         </BrowserRouter>
+        </DemoProvider>
       </SignInGate>
     </AuthProvider>
   )

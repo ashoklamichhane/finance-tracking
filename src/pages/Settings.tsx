@@ -4,6 +4,7 @@ import { getCollectionOnce, putDoc } from '@/db/firestore'
 import { useAuthUser } from '@/lib/AuthContext'
 import { signOutUser } from '@/lib/auth'
 import { BackButton } from '@/components/BackButton'
+import { useDemoMode } from '@/lib/DemoContext'
 
 async function exportBackup(uid: string) {
   const data = {
@@ -39,6 +40,7 @@ async function importBackup(uid: string, file: File) {
 
 export function Settings() {
   const user = useAuthUser()
+  const { enabled: demoEnabled, setEnabled: setDemoEnabled } = useDemoMode()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   if (!user) return null
@@ -79,6 +81,24 @@ export function Settings() {
         >
           Sign Out
         </button>
+
+        <div className="my-[18px] -mx-[18px] h-px bg-ink/8" />
+
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <div className="text-[15px] font-semibold text-ink">Demo Data</div>
+            <p className="mt-1 text-[13px] leading-relaxed text-ink/50">Show a realistic sample profile for demos. Your real data is never changed.</p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={demoEnabled}
+            onClick={() => setDemoEnabled(!demoEnabled)}
+            className={`relative h-8 w-14 shrink-0 rounded-full transition-colors ${demoEnabled ? 'bg-sage' : 'bg-ink/15'}`}
+          >
+            <span className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow-sm transition-transform ${demoEnabled ? 'translate-x-7' : 'translate-x-1'}`} />
+          </button>
+        </div>
 
         <div className="my-[18px] -mx-[18px] h-px bg-ink/8" />
 
