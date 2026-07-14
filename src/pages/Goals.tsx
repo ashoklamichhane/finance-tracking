@@ -51,7 +51,7 @@ export function Goals() {
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const reorderIdsRef = useRef<string[]>([])
 
-  if (!uid || !goalsRaw || !holdings) return null
+  if (!goalsRaw || !holdings) return null
   const goals = [...goalsRaw].sort((a, b) => a.priority - b.priority)
   const orderedGoals = reorderMode && reorderIds.length === goals.length
     ? reorderIds.map((id) => goals.find((goal) => goal.id === id)).filter((goal): goal is Goal => Boolean(goal))

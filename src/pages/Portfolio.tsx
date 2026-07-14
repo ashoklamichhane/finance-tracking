@@ -89,7 +89,7 @@ export function Portfolio() {
     await removeDoc(uid!, 'holdings', id)
   }
 
-  if (!uid || !holdings) return null
+  if (!holdings) return null
 
   const allocation = toDisplaySlices(allocationByAssetClass(holdings))
   const total = totalPortfolioPaise(holdings)

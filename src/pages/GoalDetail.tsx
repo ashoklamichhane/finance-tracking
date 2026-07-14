@@ -36,7 +36,7 @@ export function GoalDetail() {
 
   useEffect(() => setLinkedIds(goal?.linkedHoldingIds ?? []), [goal?.linkedHoldingIds])
 
-  if (!uid || !goals || !holdings || !payments || !contributions) return null
+  if (!goals || !holdings || !payments || !contributions) return null
   if (!goal) {
     return (
       <div className="space-y-4">

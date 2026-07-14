@@ -17,7 +17,7 @@ const DESKTOP_ITEMS = [
 ]
 
 export function Layout() {
-  const { enabled: demoEnabled } = useDemoMode()
+  const { enabled: demoEnabled, setEnabled: setDemoEnabled } = useDemoMode()
   return (
     <div className="min-h-svh bg-app">
       <header className="sticky top-0 z-30 hidden border-b border-ink/7 bg-surface/90 backdrop-blur-md sm:block">
@@ -45,7 +45,14 @@ export function Layout() {
       </header>
 
       <main className="mx-auto max-w-4xl px-4 pb-32 pt-5 sm:pb-10">
-        {demoEnabled && <div className="mb-4 rounded-xl border border-accent/25 bg-accent/10 px-3 py-2 text-center text-xs font-semibold text-accent-strong">Demo data is on — your real data is hidden and unchanged.</div>}
+        {demoEnabled && (
+          <div className="mb-4 flex items-center justify-center gap-2 rounded-xl border border-accent/25 bg-accent/10 px-3 py-2 text-center text-xs font-semibold text-accent-strong">
+            Demo data is on — your real data is hidden and unchanged.
+            <button onClick={() => setDemoEnabled(false)} className="underline underline-offset-2 hover:opacity-80">
+              Exit
+            </button>
+          </div>
+        )}
         <Outlet />
       </main>
 

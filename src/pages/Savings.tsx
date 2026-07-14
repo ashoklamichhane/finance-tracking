@@ -111,7 +111,7 @@ export function Savings() {
     await removeDoc(uid!, 'contributions', id)
   }
 
-  if (!uid || !contributionsRaw || !goals) return null
+  if (!contributionsRaw || !goals) return null
   const contributions = [...contributionsRaw].sort((a, b) => b.date.localeCompare(a.date))
   const visibleContributions = goalFilterId ? contributions.filter((contribution) => contribution.goalId === goalFilterId) : contributions
 

@@ -2,12 +2,18 @@ import { useState, type ReactNode } from 'react'
 import { Wallet } from 'lucide-react'
 import { signIn } from '@/lib/auth'
 import { useAuthUser, useAuthError } from '@/lib/AuthContext'
+import { useDemoMode } from '@/lib/DemoContext'
 
 export function SignInGate({ children }: { children: ReactNode }) {
   const user = useAuthUser()
   const redirectError = useAuthError()
+  const { enabled: demoEnabled, setEnabled: setDemoEnabled } = useDemoMode()
   const [initError, setInitError] = useState<string | null>(null)
   const [signingIn, setSigningIn] = useState(false)
+
+  if (demoEnabled) {
+    return <>{children}</>
+  }
 
   if (user === undefined) {
     return <div className="flex min-h-svh items-center justify-center bg-app text-ink/40">Loading…</div>
@@ -42,6 +48,9 @@ export function SignInGate({ children }: { children: ReactNode }) {
           className="rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-cream shadow-[0_2px_8px_rgba(217,119,87,0.35)] hover:opacity-90 disabled:opacity-50"
         >
           {signingIn ? 'Redirecting…' : 'Sign in with Google'}
+        </button>
+        <button onClick={() => setDemoEnabled(true)} className="text-sm font-medium text-ink/40 underline hover:text-ink/60">
+          Try it with demo data
         </button>
         {error && (
           <p className="max-w-xs text-center text-sm text-accent-strong">

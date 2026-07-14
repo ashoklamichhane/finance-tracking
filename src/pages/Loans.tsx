@@ -87,7 +87,7 @@ export function Loans() {
     await removeDoc(uid!, 'loans', id)
   }
 
-  if (!uid || !loans) return null
+  if (!loans) return null
 
   return (
     <div className="space-y-4">

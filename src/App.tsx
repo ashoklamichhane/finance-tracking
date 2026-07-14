@@ -14,26 +14,26 @@ import { DemoProvider } from '@/lib/DemoContext'
 
 function App() {
   return (
-    <AuthProvider>
-      <SignInGate>
-        <DemoProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route element={<Layout />}>
-              <Route index element={<Overview />} />
-              <Route path="goals" element={<Goals />} />
-              <Route path="goals/:goalId" element={<GoalDetail />} />
-              <Route path="portfolio" element={<Portfolio />} />
-              <Route path="loans" element={<Loans />} />
-              <Route path="savings" element={<Savings />} />
-              <Route path="settings" element={<Settings />} />
-              <Route path="net-worth" element={<NetWorth />} />
-            </Route>
-          </Routes>
-        </BrowserRouter>
-        </DemoProvider>
-      </SignInGate>
-    </AuthProvider>
+    <DemoProvider>
+      <AuthProvider>
+        <SignInGate>
+          <BrowserRouter>
+            <Routes>
+              <Route element={<Layout />}>
+                <Route index element={<Overview />} />
+                <Route path="goals" element={<Goals />} />
+                <Route path="goals/:goalId" element={<GoalDetail />} />
+                <Route path="portfolio" element={<Portfolio />} />
+                <Route path="loans" element={<Loans />} />
+                <Route path="savings" element={<Savings />} />
+                <Route path="settings" element={<Settings />} />
+                <Route path="net-worth" element={<NetWorth />} />
+              </Route>
+            </Routes>
+          </BrowserRouter>
+        </SignInGate>
+      </AuthProvider>
+    </DemoProvider>
   )
 }
 
