@@ -1,5 +1,5 @@
 import { useRef } from 'react'
-import type { Holding, Goal, Loan, SavingsPlan, Contribution } from '@/db/db'
+import type { Holding, Goal, Loan, SavingsPlan, Contribution, GoalPayment } from '@/db/db'
 import { getCollectionOnce, putDoc } from '@/db/firestore'
 import { useAuthUser } from '@/lib/AuthContext'
 import { signOutUser } from '@/lib/auth'
@@ -12,6 +12,7 @@ async function exportBackup(uid: string) {
     loans: await getCollectionOnce<Loan>(uid, 'loans'),
     savingsPlan: await getCollectionOnce<SavingsPlan>(uid, 'savingsPlan'),
     contributions: await getCollectionOnce<Contribution>(uid, 'contributions'),
+    goalPayments: await getCollectionOnce<GoalPayment>(uid, 'goalPayments'),
     exportedAt: new Date().toISOString(),
   }
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
@@ -32,6 +33,7 @@ async function importBackup(uid: string, file: File) {
   for (const l of data.loans ?? []) writes.push(putDoc<Loan>(uid, 'loans', l))
   for (const p of data.savingsPlan ?? []) writes.push(putDoc<SavingsPlan>(uid, 'savingsPlan', p))
   for (const c of data.contributions ?? []) writes.push(putDoc<Contribution>(uid, 'contributions', c))
+  for (const p of data.goalPayments ?? []) writes.push(putDoc<GoalPayment>(uid, 'goalPayments', p))
   await Promise.all(writes)
 }
 

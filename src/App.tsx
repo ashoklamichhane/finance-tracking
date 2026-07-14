@@ -8,6 +8,8 @@ import { Portfolio } from '@/pages/Portfolio'
 import { Loans } from '@/pages/Loans'
 import { Savings } from '@/pages/Savings'
 import { Settings } from '@/pages/Settings'
+import { GoalDetail } from '@/pages/GoalDetail'
+import { NetWorth } from '@/pages/NetWorth'
 
 function App() {
   return (
@@ -18,10 +20,12 @@ function App() {
             <Route element={<Layout />}>
               <Route index element={<Overview />} />
               <Route path="goals" element={<Goals />} />
+              <Route path="goals/:goalId" element={<GoalDetail />} />
               <Route path="portfolio" element={<Portfolio />} />
               <Route path="loans" element={<Loans />} />
               <Route path="savings" element={<Savings />} />
               <Route path="settings" element={<Settings />} />
+              <Route path="net-worth" element={<NetWorth />} />
             </Route>
           </Routes>
         </BrowserRouter>

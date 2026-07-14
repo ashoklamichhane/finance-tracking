@@ -40,6 +40,8 @@ export interface Goal {
   targetDate: string | null
   priority: number
   monthlyAllocationPaise: number
+  // When linked, live holding values become the goal's fund balance.
+  linkedHoldingIds?: string[]
   notes: string
   updatedAt: number
 }
@@ -59,10 +61,14 @@ export interface SavingsSplit {
   assetClass: AssetClass
   targetPct: number
   targetAmountPaise: number
+  // Optional calendar-year cap. Once contributions reach it, the app tells
+  // the user that no further contribution is required for that fund.
+  annualTargetPaise?: number
 }
 
 export interface SavingsPlan {
   id: string
+  monthKey?: string
   monthlyTotalPaise: number
   splits: SavingsSplit[]
   updatedAt: number
@@ -74,5 +80,13 @@ export interface Contribution {
   amountPaise: number
   goalId: string | null
   assetClass: AssetClass | null
+  note: string
+}
+
+export interface GoalPayment {
+  id: string
+  goalId: string
+  date: string
+  amountPaise: number
   note: string
 }

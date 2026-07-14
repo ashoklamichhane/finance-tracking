@@ -1,4 +1,4 @@
-import type { AssetClass, Contribution, Goal, Holding, Loan, SavingsPlan } from '@/db/db'
+import type { AssetClass, Contribution, Goal, GoalPayment, Holding, Loan, SavingsPlan } from '@/db/db'
 
 export function netWorthPaise(holdings: Holding[], loans: Loan[]): number {
   const assets = holdings.reduce((sum, h) => sum + h.currentValuePaise, 0)
@@ -66,6 +66,16 @@ export function goalProgress(goal: Goal): GoalProgress {
   }
 
   return { goal, progressPct, remainingPaise, projectedMonthsToTarget, projectedDate }
+}
+
+export function linkedFundPaise(goal: Goal, holdings: Holding[]): number {
+  if (!goal.linkedHoldingIds?.length) return goal.currentAmountPaise
+  const linked = new Set(goal.linkedHoldingIds)
+  return holdings.reduce((sum, holding) => sum + (linked.has(holding.id) ? holding.currentValuePaise : 0), 0)
+}
+
+export function goalPaymentsPaise(goalId: string, payments: GoalPayment[]): number {
+  return payments.filter((payment) => payment.goalId === goalId).reduce((sum, payment) => sum + payment.amountPaise, 0)
 }
 
 export function currentMonthKey(date = new Date()): string {

@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Plus, Pencil, Trash2, CheckCircle2 } from 'lucide-react'
-import { type Goal } from '@/db/db'
+import { Plus, Pencil, Trash2, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { type Goal, type Holding } from '@/db/db'
 import { useFirestoreCollection, putDoc, patchDoc, removeDoc } from '@/db/firestore'
 import { useAuthUser } from '@/lib/AuthContext'
 import { EntityForm } from '@/components/EntityForm'
@@ -9,7 +10,7 @@ import { TextInput } from '@/components/TextInput'
 import { ProgressBar } from '@/components/ProgressBar'
 import { newId } from '@/lib/id'
 import { paiseToRupees, rupeesToPaise, formatCompactPaise } from '@/lib/money'
-import { goalProgress } from '@/lib/calc'
+import { goalProgress, linkedFundPaise } from '@/lib/calc'
 import { cn } from '@/lib/utils'
 
 interface DraftGoal {
@@ -36,16 +37,19 @@ export function Goals() {
   const user = useAuthUser()
   const uid = user?.uid
   const goalsRaw = useFirestoreCollection<Goal>(uid, 'goals')
+  const holdings = useFirestoreCollection<Holding>(uid, 'holdings')
   const [open, setOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [draft, setDraft] = useState<DraftGoal>(EMPTY_DRAFT)
+  const [linkedHoldingIds, setLinkedHoldingIds] = useState<string[]>([])
 
-  if (!uid || !goalsRaw) return null
+  if (!uid || !goalsRaw || !holdings) return null
   const goals = [...goalsRaw].sort((a, b) => a.priority - b.priority)
 
   function openNew() {
     setEditingId(null)
     setDraft(EMPTY_DRAFT)
+    setLinkedHoldingIds([])
     setOpen(true)
   }
 
@@ -60,6 +64,7 @@ export function Goals() {
       monthlyAllocationRupees: paiseToRupees(goal.monthlyAllocationPaise),
       notes: goal.notes,
     })
+    setLinkedHoldingIds(goal.linkedHoldingIds ?? [])
     setOpen(true)
   }
 
@@ -73,6 +78,7 @@ export function Goals() {
         currentAmountPaise: rupeesToPaise(draft.currentAmountRupees),
         targetDate: draft.targetDate || null,
         monthlyAllocationPaise: rupeesToPaise(draft.monthlyAllocationRupees),
+        linkedHoldingIds,
         notes: draft.notes,
         updatedAt: now,
       })
@@ -86,6 +92,7 @@ export function Goals() {
         targetDate: draft.targetDate || null,
         priority: goals.length,
         monthlyAllocationPaise: rupeesToPaise(draft.monthlyAllocationRupees),
+        linkedHoldingIds,
         notes: draft.notes,
         updatedAt: now,
       })
@@ -95,6 +102,16 @@ export function Goals() {
 
   async function handleDelete(id: string) {
     await removeDoc(uid!, 'goals', id)
+  }
+
+  async function moveGoal(index: number, direction: -1 | 1) {
+    const other = goals[index + direction]
+    const current = goals[index]
+    if (!other) return
+    await Promise.all([
+      patchDoc(uid!, 'goals', current.id, { priority: other.priority, updatedAt: Date.now() }),
+      patchDoc(uid!, 'goals', other.id, { priority: current.priority, updatedAt: Date.now() }),
+    ])
   }
 
   return (
@@ -113,8 +130,9 @@ export function Goals() {
         <p className="py-10 text-center text-sm text-ink/35">No goals yet. Add your first one.</p>
       ) : (
         <ul className="space-y-2.5">
-          {goals.map((goal) => {
-            const { progressPct, projectedDate, remainingPaise } = goalProgress(goal)
+          {goals.map((goal, index) => {
+            const fundedPaise = linkedFundPaise(goal, holdings)
+            const { progressPct, projectedDate, remainingPaise } = goalProgress({ ...goal, currentAmountPaise: fundedPaise })
             const isComplete = progressPct >= 100
             return (
               <li
@@ -133,6 +151,28 @@ export function Goals() {
                     {goal.category && <div className="mt-px text-xs text-ink/40">{goal.category}</div>}
                   </div>
                   <div className="flex gap-1">
+                    <Link
+                      to={`/goals/${goal.id}`}
+                      className="flex h-[30px] items-center rounded-lg bg-ink/5 px-2 text-[11px] font-semibold text-ink/55 hover:bg-ink/10"
+                    >
+                      Details
+                    </Link>
+                    <button
+                      onClick={() => moveGoal(index, -1)}
+                      disabled={index === 0}
+                      className="flex h-[30px] w-[24px] items-center justify-center rounded-lg bg-ink/5 text-ink/50 hover:bg-ink/10 disabled:opacity-25"
+                      aria-label="Move goal up"
+                    >
+                      <ChevronUp size={14} />
+                    </button>
+                    <button
+                      onClick={() => moveGoal(index, 1)}
+                      disabled={index === goals.length - 1}
+                      className="flex h-[30px] w-[24px] items-center justify-center rounded-lg bg-ink/5 text-ink/50 hover:bg-ink/10 disabled:opacity-25"
+                      aria-label="Move goal down"
+                    >
+                      <ChevronDown size={14} />
+                    </button>
                     <button
                       onClick={() => openEdit(goal)}
                       className="flex h-[30px] w-[30px] items-center justify-center rounded-lg bg-ink/5 text-ink/50 hover:bg-ink/10"
@@ -151,7 +191,7 @@ export function Goals() {
                 </div>
                 <div className="mb-1.5 flex items-baseline justify-between text-[13.5px]">
                   <span className="tabular-nums text-ink/50">
-                    {formatCompactPaise(goal.currentAmountPaise)} / {formatCompactPaise(goal.targetAmountPaise)}
+                    {formatCompactPaise(fundedPaise)} / {formatCompactPaise(goal.targetAmountPaise)}
                   </span>
                   <span className="tabular-nums text-ink/40">{progressPct.toFixed(0)}%</span>
                 </div>
@@ -196,6 +236,16 @@ export function Goals() {
           />
         </div>
         <TextInput label="Notes" value={draft.notes} onChange={(v) => setDraft({ ...draft, notes: v })} />
+        <div className="space-y-2">
+          <div className="text-[13px] font-semibold text-ink/70">Linked portfolio funds <span className="font-normal text-ink/40">(optional)</span></div>
+          <p className="text-xs text-ink/45">Selected holdings update this goal’s fund balance automatically.</p>
+          {holdings.length === 0 ? <p className="text-xs text-ink/40">Add a portfolio holding first.</p> : holdings.map((holding) => (
+            <label key={holding.id} className="flex cursor-pointer items-center justify-between rounded-xl border border-ink/10 p-3 text-[13px]">
+              <span>{holding.name}</span>
+              <input type="checkbox" checked={linkedHoldingIds.includes(holding.id)} onChange={() => setLinkedHoldingIds((ids) => ids.includes(holding.id) ? ids.filter((id) => id !== holding.id) : [...ids, holding.id])} />
+            </label>
+          ))}
+        </div>
       </EntityForm>
     </div>
   )

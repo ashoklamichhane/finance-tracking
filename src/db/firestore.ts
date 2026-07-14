@@ -14,7 +14,7 @@ import {
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 
-export type CollectionName = 'holdings' | 'goals' | 'loans' | 'savingsPlan' | 'contributions'
+export type CollectionName = 'holdings' | 'goals' | 'loans' | 'savingsPlan' | 'contributions' | 'goalPayments'
 
 function userCollection(uid: string, name: CollectionName) {
   return collection(db, 'users', uid, name)

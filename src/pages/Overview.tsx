@@ -15,6 +15,7 @@ import {
   currentMonthKey,
   contributionsForMonth,
   totalContributedPaise,
+  linkedFundPaise,
 } from '@/lib/calc'
 
 export function Overview() {
@@ -40,7 +41,7 @@ export function Overview() {
   const topGoals = [...goals]
     .sort((a, b) => a.priority - b.priority)
     .slice(0, 3)
-    .map(goalProgress)
+    .map((goal) => goalProgress({ ...goal, currentAmountPaise: linkedFundPaise(goal, holdings) }))
 
   const initial = (user?.displayName ?? user?.email ?? '?').charAt(0).toUpperCase()
 
@@ -56,7 +57,7 @@ export function Overview() {
         </Link>
       </div>
 
-      <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#2b2a27] to-[#191917] px-6 py-8 text-cream shadow-[0_14px_30px_rgba(25,25,25,0.22)]">
+      <Link to="/net-worth" className="relative block overflow-hidden rounded-[28px] bg-gradient-to-br from-[#2b2a27] to-[#191917] px-6 py-8 text-cream shadow-[0_14px_30px_rgba(25,25,25,0.22)]">
         <div className="pointer-events-none absolute -right-12 -top-[70px] h-[200px] w-[200px] rounded-full bg-[radial-gradient(circle,rgba(217,119,87,0.35),transparent_70%)]" />
         <div className="relative text-xs font-semibold uppercase tracking-wide text-cream/55">Net Worth</div>
         <div className="relative mt-3 font-serif text-[52px] font-semibold leading-none tracking-tight">
@@ -65,7 +66,7 @@ export function Overview() {
         <div className="relative mt-2 text-[13px] text-cream/45">
           {holdings.length} holdings &middot; {loans.length} loans
         </div>
-      </div>
+      </Link>
 
       <Link to="/portfolio" className="block rounded-[22px] border border-ink/7 bg-surface p-[18px] shadow-sm shadow-ink/5">
         <div className="mb-3 flex items-center justify-between">
