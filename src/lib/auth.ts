@@ -1,6 +1,7 @@
 import {
   GoogleAuthProvider,
   onAuthStateChanged,
+  signInWithPopup,
   signInWithRedirect,
   getRedirectResult,
   signOut,
@@ -14,10 +15,23 @@ const provider = new GoogleAuthProvider()
 // (signOut only clears Firebase's session, not Google's).
 provider.setCustomParameters({ prompt: 'select_account' })
 
-// Redirect-based flow (not popup) — popups are unreliable on mobile browsers,
-// and Google blocks sign-in entirely inside embedded/in-app browsers (e.g. a
-// link opened from within Messages or Instagram) regardless of flow.
+function isInstalledWebApp(): boolean {
+  return (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (window.navigator as Navigator & { standalone?: boolean }).standalone === true
+  )
+}
+
+// An installed iOS web app has storage isolated from Safari. A redirect can
+// therefore complete in Safari but return to the installed app without the
+// Firebase credential. Keep the OAuth window attached to the installed app
+// instead; regular browser sessions continue to use the mobile-friendly
+// redirect flow.
 export function signIn(): Promise<void> {
+  if (isInstalledWebApp()) {
+    return signInWithPopup(auth, provider).then(() => undefined)
+  }
+
   return signInWithRedirect(auth, provider)
 }
 
