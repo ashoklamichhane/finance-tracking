@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Plus, Pencil, Trash2, CheckCircle2, ChevronDown, ArrowUpDown, GripVertical } from 'lucide-react'
+import { Plus, Pencil, Trash2, CheckCircle2, ChevronDown, ArrowUpDown, GripVertical, Archive, ArchiveRestore } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { type Goal, type Holding } from '@/db/db'
 import { useFirestoreCollection, putDoc, patchDoc, removeDoc } from '@/db/firestore'
@@ -141,6 +141,17 @@ export function Goals() {
     await removeDoc(uid!, 'goals', id)
   }
 
+  async function handleArchive(goal: Goal) {
+    await patchDoc(uid!, 'goals', goal.id, { archivedAt: Date.now(), completedAt: goal.completedAt ?? Date.now(), updatedAt: Date.now() })
+  }
+
+  async function handleUnarchive(id: string) {
+    // Reset completedAt too — otherwise, if the goal is still at 100%, the
+    // auto-archive effect would immediately re-archive it using the old
+    // (already-past) completion year.
+    await patchDoc(uid!, 'goals', id, { archivedAt: null, completedAt: null, updatedAt: Date.now() })
+  }
+
   async function saveOrder(ids: string[]) {
     await Promise.all(ids.map((id, priority) => patchDoc(uid!, 'goals', id, { priority, updatedAt: Date.now() })))
   }
@@ -250,6 +261,13 @@ export function Goals() {
                   <div className="flex gap-1">
                     {reorderMode ? <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-ink/6 text-ink/55" aria-label="Drag this goal"><GripVertical size={17} /></span> : <>
                     <button
+                      onClick={(event) => { event.stopPropagation(); handleArchive(goal) }}
+                      className="flex h-[30px] w-[30px] items-center justify-center rounded-lg bg-ink/5 text-ink/50 hover:bg-ink/10"
+                      aria-label="Archive"
+                    >
+                      <Archive size={14} />
+                    </button>
+                    <button
                       onClick={(event) => { event.stopPropagation(); openEdit(goal) }}
                       className="flex h-[30px] w-[30px] items-center justify-center rounded-lg bg-ink/5 text-ink/50 hover:bg-ink/10"
                       aria-label="Edit"
@@ -315,6 +333,13 @@ export function Goals() {
                         {goal.category && <div className="mt-px text-xs text-ink/40">{goal.category}</div>}
                       </div>
                       <div className="flex gap-1">
+                        <button
+                          onClick={(event) => { event.stopPropagation(); handleUnarchive(goal.id) }}
+                          className="flex h-[30px] w-[30px] items-center justify-center rounded-lg bg-ink/5 text-ink/50 hover:bg-ink/10"
+                          aria-label="Unarchive"
+                        >
+                          <ArchiveRestore size={14} />
+                        </button>
                         <button
                           onClick={(event) => { event.stopPropagation(); openEdit(goal) }}
                           className="flex h-[30px] w-[30px] items-center justify-center rounded-lg bg-ink/5 text-ink/50 hover:bg-ink/10"
