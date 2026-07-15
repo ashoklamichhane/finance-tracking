@@ -25,6 +25,7 @@ dist-ssr
 
 # Claude Code local config
 .claude/
+CLAUDE.md
 
 # Firebase CLI local cache
 .firebase/
