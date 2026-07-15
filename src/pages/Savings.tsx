@@ -246,7 +246,7 @@ export function Savings() {
                 type="number"
                 value={row.targetPct}
                 onChange={(e) => updateSplitRow(i, { targetPct: Number(e.target.value) })}
-                className="w-16 rounded-xl border border-ink/14 bg-white px-2.5 py-2.5 text-[13.5px] text-ink outline-none focus:ring-2 focus:ring-accent"
+                className="w-16 rounded-xl border border-ink/14 bg-app px-2.5 py-2.5 text-[13.5px] text-ink outline-none focus:ring-2 focus:ring-accent"
               />
               <button
                 type="button"

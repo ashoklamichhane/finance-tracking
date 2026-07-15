@@ -9,7 +9,7 @@ export function MoneyInput({ label, valueRupees, onChange, required }: MoneyInpu
   return (
     <label className="block text-[13px] font-semibold text-ink/70">
       {label}
-      <div className="mt-1.5 flex items-center rounded-xl border border-ink/14 bg-white px-3 focus-within:ring-2 focus-within:ring-accent">
+      <div className="mt-1.5 flex items-center rounded-xl border border-ink/14 bg-app px-3 focus-within:ring-2 focus-within:ring-accent">
         <span className="text-ink/40">₹</span>
         <input
           type="number"

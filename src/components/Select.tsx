@@ -17,7 +17,7 @@ export function Select({ label, value, onChange, options }: SelectProps) {
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-xl border border-ink/14 bg-white px-3 py-2.5 text-[15px] font-normal text-ink outline-none focus:ring-2 focus:ring-accent"
+        className="w-full rounded-xl border border-ink/14 bg-app px-3 py-2.5 text-[15px] font-normal text-ink outline-none focus:ring-2 focus:ring-accent"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>
