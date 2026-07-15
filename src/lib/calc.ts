@@ -1,4 +1,4 @@
-import type { AssetClass, Contribution, Goal, GoalPayment, Holding, Loan, SavingsPlan } from '@/db/db'
+import type { AssetClass, Contribution, Goal, GoalPayment, Holding, Loan, SavingsPlan, SavingsSplit } from '@/db/db'
 
 export function netWorthPaise(holdings: Holding[], loans: Loan[]): number {
   const assets = holdings.reduce((sum, h) => sum + h.currentValuePaise, 0)
@@ -93,31 +93,44 @@ export function contributionsForMonth(contributions: Contribution[], monthKey: s
   return contributions.filter((c) => c.date.startsWith(monthKey))
 }
 
+// A saved plan applies from its own month forward until a newer plan
+// supersedes it — there's no need to re-save a plan every month. Pick the
+// most recent dated plan at or before monthKey; the legacy undated 'main'
+// plan (id, not a real month) is the fallback of last resort.
+export function resolveActivePlan(plans: SavingsPlan[], monthKey: string): SavingsPlan | undefined {
+  const dated = plans
+    .filter((p) => p.id !== 'main' && !!p.monthKey && p.monthKey <= monthKey)
+    .sort((a, b) => b.monthKey!.localeCompare(a.monthKey!))
+  if (dated.length > 0) return dated[0]
+  return plans.find((p) => p.id === 'main')
+}
+
+// A stable identity for a split even on legacy plans saved before named
+// funds existed (no id yet) — falls back to assetClass, which was a unique
+// key back when every plan had at most one split per asset class. 'fund' is
+// a last-resort fallback for the never-really-expected case of neither.
+export function splitKey(split: SavingsSplit): string {
+  return split.id ?? split.assetClass ?? 'fund'
+}
+
+export function splitDisplayName(split: SavingsSplit, assetClassLabel: (ac: AssetClass) => string): string {
+  return split.name ?? (split.assetClass ? assetClassLabel(split.assetClass) : 'Fund')
+}
+
+// Which split a contribution counts toward. fundId is authoritative when
+// present; older contributions (and any logged with no active plan) only
+// have assetClass, so fall back to the first split of that asset class —
+// the only case that was ever possible before funds could be named and
+// multiple funds could share an asset class.
+export function resolveSplitForContribution(contribution: Contribution, splits: SavingsSplit[]): SavingsSplit | undefined {
+  if (contribution.fundId) {
+    const byId = splits.find((s) => splitKey(s) === contribution.fundId)
+    if (byId) return byId
+  }
+  return splits.find((s) => s.assetClass === contribution.assetClass)
+}
+
 export function totalContributedPaise(contributions: Contribution[]): number {
   return contributions.reduce((sum, c) => sum + c.amountPaise, 0)
 }
 
-export interface PlannedVsActual {
-  assetClass: AssetClass
-  plannedPaise: number
-  actualPaise: number
-  diffPaise: number
-}
-
-export function plannedVsActual(
-  plan: SavingsPlan | undefined,
-  monthContributions: Contribution[],
-): PlannedVsActual[] {
-  if (!plan) return []
-  return plan.splits.map((split) => {
-    const actualPaise = monthContributions
-      .filter((c) => c.assetClass === split.assetClass)
-      .reduce((sum, c) => sum + c.amountPaise, 0)
-    return {
-      assetClass: split.assetClass,
-      plannedPaise: split.targetAmountPaise,
-      actualPaise,
-      diffPaise: actualPaise - split.targetAmountPaise,
-    }
-  })
-}

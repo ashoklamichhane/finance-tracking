@@ -29,14 +29,20 @@ const loans: Loan[] = [
 
 function plans(): SavingsPlan[] {
   const id = monthKey()
+  const yearlyGoalPaise = 7200000
   const plan: SavingsPlan = {
     id,
     monthKey: id,
+    yearlyGoalPaise,
     monthlyTotalPaise: 600000,
     splits: [
-      { assetClass: 'mf', targetPct: 50, targetAmountPaise: 300000, annualTargetPaise: 3600000 },
-      { assetClass: 'emergency', targetPct: 30, targetAmountPaise: 180000, annualTargetPaise: 1800000 },
-      { assetClass: 'gold', targetPct: 20, targetAmountPaise: 120000, annualTargetPaise: 1200000 },
+      // Two funds sharing an asset class, to demonstrate named funds are no
+      // longer 1:1 with assetClass — the primary is where legacy
+      // (fundId-less) contributions attribute by fallback.
+      { id: 'demo-split-mf', name: 'Mutual Fund', assetClass: 'mf', targetPct: 45, targetAmountPaise: 270000, annualTargetPaise: 3600000 },
+      { id: 'demo-split-mf-secondary', name: 'Mutual Fund — Secondary', assetClass: 'mf', targetPct: 5, targetAmountPaise: 30000, annualTargetPaise: 600000 },
+      { id: 'demo-split-emergency', name: 'Emergency Fund', assetClass: 'emergency', targetPct: 30, targetAmountPaise: 180000, annualTargetPaise: 1800000 },
+      { id: 'demo-split-gold', name: 'Gold', assetClass: 'gold', targetPct: 20, targetAmountPaise: 120000, annualTargetPaise: 1200000 },
     ],
     updatedAt: 0,
   }

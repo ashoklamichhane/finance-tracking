@@ -65,17 +65,34 @@ export interface Loan {
 }
 
 export interface SavingsSplit {
-  assetClass: AssetClass
+  // Optional because plans saved before named funds existed have no id/name
+  // on their splits — treat as uncustomized and fall back to assetClass.
+  // Backfilled the next time the plan is edited and saved.
+  id?: string
+  name?: string
+  // No longer user-facing — funds aren't categorized in the planning UI
+  // anymore. Present only on funds saved before this change (or silently
+  // inherited from them), and used solely to resolve old Contributions
+  // that predate per-fund ids (see resolveSplitForContribution). New funds
+  // have none; don't add UI that lets a user set this again.
+  assetClass?: AssetClass
+  // % of the plan's yearlyGoalPaise. targetAmountPaise (monthly) and
+  // annualTargetPaise (annual) are both derived from this at save time —
+  // there's no independently-set cap anymore.
   targetPct: number
   targetAmountPaise: number
-  // Optional calendar-year cap. Once contributions reach it, the app tells
-  // the user that no further contribution is required for that fund.
   annualTargetPaise?: number
+  // Curated subset of Holding ids shown as this fund's "linked holdings".
+  // Undefined means uncustomized — falls back to matching by assetClass.
+  linkedHoldingIds?: string[]
 }
 
 export interface SavingsPlan {
   id: string
   monthKey?: string
+  // Primary input for the plan. monthlyTotalPaise is derived (yearlyGoalPaise / 12)
+  // and kept alongside it so older display code needn't special-case its absence.
+  yearlyGoalPaise?: number
   monthlyTotalPaise: number
   splits: SavingsSplit[]
   updatedAt: number
@@ -87,6 +104,10 @@ export interface Contribution {
   amountPaise: number
   goalId: string | null
   assetClass: AssetClass | null
+  // References a specific SavingsSplit.id when logged against a named fund.
+  // Older contributions (or ones logged with no active plan) have none —
+  // resolveSplitForContribution() falls back to matching by assetClass.
+  fundId?: string | null
   note: string
 }
 

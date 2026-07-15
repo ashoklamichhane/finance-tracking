@@ -1,12 +1,12 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { Home, Target, PieChart, Landmark, PiggyBank, Settings } from 'lucide-react'
+import { Home, Target, PieChart, Landmark, Wallet, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useDemoMode } from '@/lib/DemoContext'
 
 const TAB_ITEMS = [
   { to: '/', label: 'Home', icon: Home, end: true },
   { to: '/goals', label: 'Goals', icon: Target },
-  { to: '/savings', label: 'Savings', icon: PiggyBank },
+  { to: '/savings', label: 'Savings', icon: Wallet },
 ]
 
 const DESKTOP_ITEMS = [
