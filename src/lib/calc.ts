@@ -105,6 +105,18 @@ export function resolveActivePlan(plans: SavingsPlan[], monthKey: string): Savin
   return plans.find((p) => p.id === 'main')
 }
 
+// The most recent plan overall — the current fund structure. Used when
+// logging into a month earlier than any saved plan (resolveActivePlan
+// returns nothing there), so contributions still attach to real named funds
+// instead of falling back to bare asset classes that can't resolve later.
+export function latestPlan(plans: SavingsPlan[]): SavingsPlan | undefined {
+  const dated = plans
+    .filter((p) => p.id !== 'main' && !!p.monthKey)
+    .sort((a, b) => b.monthKey!.localeCompare(a.monthKey!))
+  if (dated.length > 0) return dated[0]
+  return plans.find((p) => p.id === 'main')
+}
+
 // A stable identity for a split even on legacy plans saved before named
 // funds existed (no id yet) — falls back to assetClass, which was a unique
 // key back when every plan had at most one split per asset class. 'fund' is
@@ -132,5 +144,16 @@ export function resolveSplitForContribution(contribution: Contribution, splits: 
 
 export function totalContributedPaise(contributions: Contribution[]): number {
   return contributions.reduce((sum, c) => sum + c.amountPaise, 0)
+}
+
+// The effective calendar-year cap for a fund. annualTargetPaise is
+// authoritative when a positive value was stored, but legacy plans (and
+// any saved before an annual cap was recorded per fund) only carry a
+// monthly targetAmountPaise — so fall back to 12× that. Mirrors the
+// plan-level yearlyGoalPaise ?? monthlyTotalPaise * 12 fallback. Returns 0
+// only when the fund has no target at all, which reads as "no cap set".
+export function annualCapPaise(split: SavingsSplit): number {
+  if (split.annualTargetPaise && split.annualTargetPaise > 0) return split.annualTargetPaise
+  return split.targetAmountPaise > 0 ? split.targetAmountPaise * 12 : 0
 }
 
