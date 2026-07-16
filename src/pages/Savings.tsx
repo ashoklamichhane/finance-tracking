@@ -926,7 +926,11 @@ export function Savings() {
                             <div className="flex items-center justify-between">
                               <span className="text-[10.5px] font-semibold uppercase tracking-wide text-ink/45">By month</span>
                               {activeMonthCount > 0 && (
-                                <span className="text-[10px] text-ink/35">tap a bar to open that month</span>
+                                <span className="text-[10px] text-ink/35">
+                                  {split.targetAmountPaise > 0
+                                    ? `full bar = ${formatCompactPaise(split.targetAmountPaise)}/mo goal`
+                                    : 'tap a bar to open that month'}
+                                </span>
                               )}
                             </div>
                             {activeMonthCount === 0 ? (
@@ -935,7 +939,17 @@ export function Savings() {
                               <>
                                 <div className="flex items-end gap-1">
                                   {monthlyTotals.map((v, i) => {
-                                    const h = v !== 0 ? Math.max(12, (Math.abs(v) / monthlyMaxAbs) * 100) : 0
+                                    // Height reads as share of this fund's monthly goal — a full
+                                    // bar means "hit the monthly target that month", consistent
+                                    // across every fund's chart. Falls back to scaling against
+                                    // this fund's own biggest month only when it has no monthly
+                                    // target set at all (an unallocated 0% fund).
+                                    const h =
+                                      v === 0
+                                        ? 0
+                                        : split.targetAmountPaise > 0
+                                          ? Math.min(100, Math.max(8, (Math.abs(v) / split.targetAmountPaise) * 100))
+                                          : Math.max(12, (Math.abs(v) / monthlyMaxAbs) * 100)
                                     const isSel = i === Number(selectedMonth.slice(5, 7)) - 1
                                     return (
                                       <button
