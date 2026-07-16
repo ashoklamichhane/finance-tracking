@@ -146,6 +146,31 @@ export function totalContributedPaise(contributions: Contribution[]): number {
   return contributions.reduce((sum, c) => sum + c.amountPaise, 0)
 }
 
+// Which of the currently displayed splits a contribution counts toward,
+// bridging plan-doc boundaries. A contribution's fundId only matches splits
+// from the exact plan document active when it was logged — but a legacy
+// 'main' plan and a later dated plan (or two dated plans from different
+// months) each carry their own copy of a same-named fund under a different
+// id. A contribution logged under the plan active in its own month can
+// therefore fail to resolve against `displaySplits` (the plan active for
+// whatever month/year is currently being viewed) even though it's plainly
+// the same fund. Falls back to matching by display name against the plan
+// that actually was active for the contribution's own month.
+export function resolveDisplaySplit(
+  contribution: Contribution,
+  plans: SavingsPlan[],
+  displaySplits: SavingsSplit[],
+  assetClassLabel: (ac: AssetClass) => string,
+): SavingsSplit | undefined {
+  const direct = resolveSplitForContribution(contribution, displaySplits)
+  if (direct) return direct
+  const historicalPlan = resolveActivePlan(plans, contribution.date.slice(0, 7))
+  const historicalSplit = historicalPlan ? resolveSplitForContribution(contribution, historicalPlan.splits) : undefined
+  if (!historicalSplit) return undefined
+  const name = splitDisplayName(historicalSplit, assetClassLabel)
+  return displaySplits.find((s) => splitDisplayName(s, assetClassLabel) === name)
+}
+
 // The effective calendar-year cap for a fund. annualTargetPaise is
 // authoritative when a positive value was stored, but legacy plans (and
 // any saved before an annual cap was recorded per fund) only carry a

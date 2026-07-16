@@ -20,7 +20,7 @@ import {
   totalContributedPaise,
   resolveActivePlan,
   latestPlan,
-  resolveSplitForContribution,
+  resolveDisplaySplit,
   splitKey,
   splitDisplayName,
   annualCapPaise,
@@ -225,7 +225,7 @@ export function Savings() {
   function openContribEdit(c: Contribution) {
     const existingPlan = resolveActivePlan(plans ?? [], selectedMonth) ?? latestPlan(plans ?? [])
     const keys = uniqueSplitKeys(existingPlan?.splits ?? [])
-    const split = existingPlan ? resolveSplitForContribution(c, existingPlan.splits) : undefined
+    const split = existingPlan ? resolveDisplaySplit(c, plans ?? [], existingPlan.splits, assetClassLabel) : undefined
     setEditingContribId(c.id)
     setContribDate(c.date)
     setContribAmountRupees(paiseToRupees(c.amountPaise))
@@ -294,7 +294,7 @@ export function Savings() {
     new Map<SavingsSplit, number>(
       (activePlan?.splits ?? []).map((split) => [
         split,
-        totalContributedPaise(contribs.filter((c) => resolveSplitForContribution(c, activePlan!.splits) === split)),
+        totalContributedPaise(contribs.filter((c) => resolveDisplaySplit(c, plans, activePlan!.splits, assetClassLabel) === split)),
       ]),
     )
   const splitMonthActual = splitActualFor(monthContributions)
@@ -311,7 +311,7 @@ export function Savings() {
   // reconcile and let the user reassign or remove them.
   const unassignedContributions = activePlan
     ? (view === 'month' ? monthContributions : yearContributions).filter(
-        (c) => !resolveSplitForContribution(c, activePlan.splits),
+        (c) => !resolveDisplaySplit(c, plans, activePlan.splits, assetClassLabel),
       )
     : []
 
@@ -611,14 +611,9 @@ export function Savings() {
                     <button
                       key={i}
                       type="button"
-                      aria-label={`Open ${MONTH_NAMES[i]} ${yearKey}`}
+                      aria-label={`${MONTH_NAMES[i]} ${yearKey}: ${i <= paceLastIdx ? formatCompactPaise(paceCum[i]) : 'no data yet'}`}
                       onMouseEnter={() => i <= paceLastIdx && setHoverPaceIdx(i)}
-                      onFocus={() => i <= paceLastIdx && setHoverPaceIdx(i)}
-                      onBlur={() => setHoverPaceIdx(null)}
-                      onClick={() => {
-                        setSelectedMonth(`${yearKey}-${String(i + 1).padStart(2, '0')}`)
-                        setView('month')
-                      }}
+                      onClick={() => i <= paceLastIdx && setHoverPaceIdx(i)}
                       className="flex-1"
                     />
                   ))}
@@ -780,9 +775,11 @@ export function Savings() {
                 const key = fundKeys.get(split)!
                 const tone = fundTones.get(split)!
                 const monthActual = totalContributedPaise(
-                  monthContributions.filter((c) => resolveSplitForContribution(c, activePlan.splits) === split),
+                  monthContributions.filter((c) => resolveDisplaySplit(c, plans, activePlan.splits, assetClassLabel) === split),
                 )
-                const fundYearContribs = yearContributions.filter((c) => resolveSplitForContribution(c, activePlan.splits) === split)
+                const fundYearContribs = yearContributions.filter(
+                  (c) => resolveDisplaySplit(c, plans, activePlan.splits, assetClassLabel) === split,
+                )
                 const yearActual = totalContributedPaise(fundYearContribs)
                 // Per-calendar-month totals for this fund, for the year-view
                 // expansion's pacing strip + monthly list.
@@ -803,7 +800,7 @@ export function Savings() {
                       : 0
                 const ringMode: 'done' | 'alert' | undefined = capped ? 'done' : neg ? 'alert' : undefined
                 const expanded = expandedFund === key
-                const entries = monthContributions.filter((c) => resolveSplitForContribution(c, activePlan.splits) === split)
+                const entries = monthContributions.filter((c) => resolveDisplaySplit(c, plans, activePlan.splits, assetClassLabel) === split)
                 const linkedHoldings = split.linkedHoldingIds
                   ? holdings.filter((h) => split.linkedHoldingIds!.includes(h.id))
                   : holdings.filter((h) => h.assetClass === split.assetClass)
@@ -1135,7 +1132,9 @@ export function Savings() {
             const annualAmountPaise = monthlyAmountPaise * 12
             const original = activePlan?.splits.find((os) => fundKeys.get(os) === row.id)
             const yearActualForRow = original
-              ? totalContributedPaise(yearContributions.filter((c) => resolveSplitForContribution(c, activePlan!.splits) === original))
+              ? totalContributedPaise(
+                  yearContributions.filter((c) => resolveDisplaySplit(c, plans, activePlan!.splits, assetClassLabel) === original),
+                )
               : 0
             const rowCapped = annualAmountPaise > 0 && yearActualForRow >= annualAmountPaise
             return (
