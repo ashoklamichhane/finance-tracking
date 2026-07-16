@@ -756,7 +756,7 @@ export function Savings() {
           )}
 
           <div className="flex items-center justify-between px-0.5">
-            <span className="text-xs font-semibold uppercase tracking-wide text-ink/50">{view === 'month' ? 'Funds' : 'Yearly caps by fund'}</span>
+            <span className="text-xs font-semibold uppercase tracking-wide text-ink/50">{view === 'month' ? 'Funds' : 'Yearly goals'}</span>
             {view === 'month' && (
               <button onClick={openContribNew} className="flex items-center gap-1 text-[13px] font-semibold text-sage">
                 <Plus size={12} strokeWidth={2.5} /> Log
@@ -951,7 +951,7 @@ export function Savings() {
                                       >
                                         <div className="flex h-12 w-full items-end overflow-hidden rounded-[3px] bg-ink/5">
                                           <div
-                                            className={cn('w-full', v < 0 ? 'bg-accent-strong/70' : TONE_BG[tone])}
+                                            className={cn('w-full', v < 0 ? 'bg-accent-strong' : 'bg-sage')}
                                             style={{ height: `${h}%` }}
                                           />
                                         </div>
